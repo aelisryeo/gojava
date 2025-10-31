@@ -13,7 +13,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
     // 게임 상수
     private final int GAME_WIDTH = 800;
     private final int GAME_HEIGHT = 600;
-    private final int GAME_TICK = 10; // 10ms 마다 업데이트 (100 FPS)
 
     private final int STAIR_WIDTH = 100;  // 계단 너비
     private final int STAIR_HEIGHT = 20;  // 계단 높이
@@ -62,7 +61,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
 
         // 캐릭터 객체 생성
         // 초기 위치는 화면 중앙 하단에 가깝게 설정
-        // InfiniteStairsGame.java 파일 내 수정할 부분
 
 // Character 객체 생성 시, 파일명만 전달합니다. (경로는 Character.java에서 처리)
         player = new Character(
@@ -71,17 +69,10 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
                 "character.png" // "res/" 접두어를 제거하고 파일명만 남깁니다.
         );
 
-        // 초기 계단 생성 (테스트용)
-        //stairs.add(new Rectangle(50, GAME_HEIGHT - 40, 300, 20));
+        // 초기 계단 생성
         initializeStairs();
         updateDirectionKey();
 
-        // 게임 루프 타이머 시작
-        // 이거일단복붙해뒀는데 뭐가되는지잘몰르겠음
-        /*
-        *   gameTimer = new Timer(GAME_TICK, this);
-        *   gameTimer.start();
-        */
     }
 
 
@@ -199,6 +190,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
             return;
         }
 
+        /*
         if (stairs.size() > 2) {
             StairInfo stairAfterNext = stairs.get(2);
             if (nextStair.isTurnPoint) { // 이제 nextStair 대신 stairs.get(1)을 사용 (일관성 유지)
@@ -210,6 +202,9 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
         } else {
             requiresDirectionChange = false;
         }
+         */
+
+        updateDirectionKey();
 
         player.setX(nextPlayerX);
 
@@ -240,11 +235,9 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
         }
 
         String pressedKey = KeyEvent.getKeyText(e.getKeyCode()).toUpperCase();
-        boolean turnKeyWasPressed = false;
 
         if (pressedKey.equals(currentDirectionKey)) {
                 isPlayerFacingLeft = !isPlayerFacingLeft;
-                //turnKeyWasPressed = true;
                 requiresDirectionChange = false;
                 System.out.println("방향 전환 성공: "+ currentDirectionKey);
 
