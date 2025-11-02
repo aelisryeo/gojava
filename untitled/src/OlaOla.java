@@ -159,7 +159,24 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
         if (isGameOver || stairs.size() < 2) return;
 
         // 1. 다음 목표 계단 (현재 캐릭터가 밟고 있는 계단은 0번이 아닐 수 있음. 가장 아래 계단이 목표)
+        StairInfo currentStair = stairs.get(0);
         StairInfo nextStair = stairs.get(1);
+        StairInfo nnextStair = stairs.get(2);
+
+
+        // ⭐ 1. 방향 전환 요구사항 체크 ⭐
+        // 현재 계단에서 다음 계단으로 갈 때 방향이 바뀌는지 확인
+        // 즉, stairs[0]의 isLeftDirection과 stairs[1]의 isLeftDirection이 다르면 꺾이는 지점
+        if (nnextStair.isLeftDirection != nextStair.isLeftDirection) {
+            // 방향이 바뀔 때만 키 전환을 요구합니다.
+            requiresDirectionChange = true;
+            // 방향 전환이 요구될 때 새로운 키를 할당합니다.
+            // (이 키를 눌러야 다음 계단으로 이동하며, isPlayerFacingLeft도 반전됩니다.)
+            updateDirectionKey();
+        } else {
+            // 방향이 바뀌지 않으면 전환 요구를 해제합니다.
+            requiresDirectionChange = false;
+        }
 
         int moveDistance = STAIR_WIDTH;
         int nextPlayerX;
@@ -189,22 +206,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
             gameTimer.stop();
             return;
         }
-
-        /*
-        if (stairs.size() > 2) {
-            StairInfo stairAfterNext = stairs.get(2);
-            if (nextStair.isTurnPoint) { // 이제 nextStair 대신 stairs.get(1)을 사용 (일관성 유지)
-                requiresDirectionChange = true;
-                updateDirectionKey(); // 꺾이는 지점에서만 새로운 키 지정
-            } else {
-                requiresDirectionChange = false; // 직진이면 요구 해제
-            }
-        } else {
-            requiresDirectionChange = false;
-        }
-         */
-
-        updateDirectionKey();
 
         player.setX(nextPlayerX);
 
@@ -278,11 +279,11 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
         g.drawString("Score: " + score, 10, 20);
         g.drawString("Direction: " + (isPlayerFacingLeft ? "LEFT" : "RIGHT"), 10, 40);
 
-        //if(requiresDirectionChange) {
+        if(requiresDirectionChange) {
             g.setColor(Color.CYAN);
             g.setFont(new Font("SansSerif", Font.BOLD, 24));
             g.drawString("TURN KEY : [" + currentDirectionKey + "]", GAME_WIDTH - 200, 400);
-        //}
+        }
         // 4. 게임 오버 메시지
         if (isGameOver) {
             g.setColor(Color.RED);
