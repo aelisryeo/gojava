@@ -56,6 +56,11 @@ public class Character {
         }
     }
 
+    public BufferedImage getImage() {
+        return characterImage;
+    }
+
+
     // --- Getter 및 Setter 메소드 ---
     public int getX() { return x; }
     public int getY() { return y; }

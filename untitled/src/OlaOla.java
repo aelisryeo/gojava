@@ -21,7 +21,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
 
     private final int PLAYER_Y_POSITION = GAME_HEIGHT - 100;
     // 게임 객체
-    private Timer gameTimer;
     private Character player;
     private List<StairInfo> stairs = new ArrayList<>(); // 계단을 관리하는 리스트
 
@@ -195,7 +194,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
         ) {
             System.out.println("게임 오버! 계단 경로를 벗어났습니다.");
             isGameOver = true;
-            gameTimer.stop();
             return;
         }
         // 2. 충돌(게임 오버) 체크
@@ -203,7 +201,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
         if (nextStair.isLeftDirection != isPlayerFacingLeft) {
             System.out.println("게임 오버! 잘못된 방향으로 올랐습니다.");
             isGameOver = true;
-            gameTimer.stop();
             return;
         }
 
@@ -269,9 +266,45 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
             }
             g.fillRect(stair.bounds.x, stair.bounds.y, stair.bounds.width, stair.bounds.height);
         }
+        Graphics2D g2d = (Graphics2D)g.create();
+        if (player.getImage() != null) {
 
+            // 반전이 필요한 경우
+            if (isPlayerFacingLeft) {
+                // (1) X축 기준으로 반전 변환을 적용합니다. (scale(-1, 1))
+                g2d.scale(-1, 1);
+
+                // (2) 반전된 후의 좌표계에서 캐릭터를 그립니다.
+                //     - X 좌표를 음수로 설정하여 원래 위치로 되돌립니다.
+                //     - X 좌표 = -(플레이어 실제 X 좌표 + 플레이어 너비)
+                int flippedX = -(player.getX() + player.getWidth());
+
+                g2d.drawImage(
+                        player.getImage(),
+                        flippedX,
+                        player.getY(),
+                        player.getWidth(),
+                        player.getHeight(),
+                        this
+                );
+
+            } else {
+                // 반전이 필요 없는 경우: 일반 그리기
+                g2d.drawImage(
+                        player.getImage(),
+                        player.getX(),
+                        player.getY(),
+                        player.getWidth(),
+                        player.getHeight(),
+                        this
+                );
+            }
+        }
+
+        // g2d 사용을 마쳤으므로 dispose() 호출 (필수)
+        g2d.dispose();
         // 2. 캐릭터 그리기
-        player.draw(g, this);
+        //player.draw(g, this);
 
         // 3. 점수 및 정보 표시
         g.setColor(Color.YELLOW);
