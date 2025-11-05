@@ -30,7 +30,11 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
 
     private Timer loopTimer;
     private final int GAME_TICK_MS = 16;
-    private int timePerStair = 3000;
+    private double timePerStair;
+    private final double INITIAL_STAIR_TIME = 3000.0;
+    private final double MIN_TIME_PER_STAIR = 250.0;
+    private final double TIME_REDUCTION = 100.0;
+    private final int DIFFICULTY = 20;
     private double remainTime;
     //;인식잘안되길래 일단 h로 넣어둠 잘되는데?
     private final String[] DIRECTION_KEYS = {"A", "S", "D", "F", "H", "J", "K", "L"};
@@ -63,7 +67,8 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
         setFocusable(true);
         addKeyListener(this);
 
-        this.remainTime = timePerStair;
+        this.timePerStair = INITIAL_STAIR_TIME;
+        this.remainTime = this.timePerStair;
 
         loopTimer = new Timer(GAME_TICK_MS, this);
         loopTimer.start();
@@ -240,7 +245,17 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
         // 5. 점수 증가
         score++;
 
-        this.remainTime = timePerStair;
+        updateDifficulty();
+        this.remainTime = this.timePerStair;
+    }
+
+
+    private void updateDifficulty() {
+        if (score > 0 && score % DIFFICULTY == 0) {
+            double newTime = timePerStair - TIME_REDUCTION;
+
+            timePerStair = Math.max(newTime, MIN_TIME_PER_STAIR);
+        }
     }
 
     private void updateDirectionKey() {
