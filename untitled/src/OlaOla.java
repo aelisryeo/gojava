@@ -55,6 +55,12 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
             this.isTurnPoint = isTurn;
         }
     }
+
+    public enum ObstacleType {
+
+
+    }
+
     private boolean isPlayerFacingLeft = false;
 
     // 생성자: 게임의 모든 것을 초기화합니다.
