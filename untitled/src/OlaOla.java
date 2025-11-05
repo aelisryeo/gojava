@@ -20,6 +20,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
     private final int INITIAL_STAIR_COUNT = 10; // 초기 생성 계단 개수
 
     private final int PLAYER_Y_POSITION = GAME_HEIGHT - 100;
+    private int LIFE = 3;
     // 게임 객체
     private Character player;
     private List<StairInfo> stairs = new ArrayList<>(); // 계단을 관리하는 리스트
@@ -27,7 +28,11 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
     private boolean isGameOver = false;
     private int score = 0;
 
-    //;인식잘안되길래 일단 h로 넣어둠
+    private Timer loopTimer;
+    private final int GAME_TICK_MS = 16;
+    private int timePerStair = 3000;
+    private double remainTime;
+    //;인식잘안되길래 일단 h로 넣어둠 잘되는데?
     private final String[] DIRECTION_KEYS = {"A", "S", "D", "F", "H", "J", "K", "L"};
     private String currentDirectionKey;
     private Random random = new Random();
@@ -58,6 +63,10 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
         setFocusable(true);
         addKeyListener(this);
 
+        this.remainTime = timePerStair;
+
+        loopTimer = new Timer(GAME_TICK_MS, this);
+        loopTimer.start();
         // 캐릭터 객체 생성
         // 초기 위치는 화면 중앙 하단에 가깝게 설정
 
@@ -148,7 +157,19 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
     }
 
     private void updateGameLogic() {
-        if (isGameOver) return;
+        if (isGameOver) {
+            if (loopTimer.isRunning()) {
+                loopTimer.stop();
+            }
+            return;
+        }
+
+        remainTime -= GAME_TICK_MS;
+
+        if (remainTime <= 0) {
+            isGameOver = true;
+            System.out.println("Game Over");
+        }
 
         // (TODO: 여기에 시간 제한/체력 게이지 감소 로직을 추가할 수 있습니다.)
     }
@@ -218,6 +239,8 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
 
         // 5. 점수 증가
         score++;
+
+        this.remainTime = timePerStair;
     }
 
     private void updateDirectionKey() {
@@ -255,6 +278,22 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+
+        //남은 시간 바
+        if (!isGameOver) {
+            double timePercent = Math.max(0, remainTime / timePerStair);
+
+            if (timePercent > 0.5) {
+                g.setColor(Color.green);
+            } else if (timePercent > 0.25) {
+                g.setColor(Color.yellow);
+            } else {
+                g.setColor(Color.red);
+            }
+
+            int barWidth = (int) (GAME_WIDTH * timePercent);
+            g.fillRect(0, 0, barWidth, 15);
+        }
 
         // 1. 계단 그리기
         for (StairInfo stair : stairs) {
