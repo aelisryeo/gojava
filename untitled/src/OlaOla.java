@@ -36,7 +36,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
     private final double TIME_REDUCTION = 100.0;
     private final int DIFFICULTY = 20;
     private double remainTime;
-    //;인식잘안되길래 일단 h로 넣어둠 잘되는데?
+    //;인식잘안되길래 일단 h로 넣어둠
     private final String[] DIRECTION_KEYS = {"A", "S", "D", "F", "H", "J", "K", "L"};
     private String currentDirectionKey;
     private Random random = new Random();
@@ -48,17 +48,31 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
         Rectangle bounds;
         boolean isLeftDirection;
         boolean isTurnPoint;
+        ObstacleType obstacle;
+        ItemType item;
 
-        public StairInfo(int x, int y, boolean isLeft, boolean isTurn) {
+        public StairInfo(int x, int y, boolean isLeft, boolean isTurn, ObstacleType obstacle, ItemType item) {
             this.bounds = new Rectangle(x, y, STAIR_WIDTH, STAIR_HEIGHT);
             this.isLeftDirection = isLeft;
             this.isTurnPoint = isTurn;
+            this.obstacle = obstacle;
+            this.item = item;
         }
     }
 
     public enum ObstacleType {
+        PROFESSOR,
+        MUSHROOM,
+        STUDENT,
+        BED,
+        NONE
+    }
 
-
+    public enum ItemType {
+        TEST,
+        CLOCK,
+        HEART,
+        NONE
     }
 
     private boolean isPlayerFacingLeft = false;
@@ -99,7 +113,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
         int currentX = player.getX() - (STAIR_WIDTH / 2) + (player.getWidth() / 2);
         int currentY = GAME_HEIGHT - 40;
 
-        stairs.add(new StairInfo(currentX, currentY, false, false));
+        stairs.add(new StairInfo(currentX, currentY, false, false, ObstacleType.NONE, ItemType.NONE));
 
         for (int i = 0; i < INITIAL_STAIR_COUNT + 5; i++) {
             generateNewStair();
@@ -158,8 +172,13 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
         if (newX < 0) newX = 50;
         if (newX + STAIR_WIDTH > GAME_WIDTH) newX = GAME_WIDTH - STAIR_WIDTH - 50 ;
 
+        ObstacleType newObstacle = ObstacleType.NONE;
+        ItemType newItem = ItemType.NONE;
+
+        //TODO: newItem이랑 ObstacleType 랜덤선택 만들기 (가중치 설정해서 랜덤뽑기 ㄱㄱ)
+
         // 5. StairInfo 생성 및 추가
-        stairs.add(new StairInfo(newX, newY, nextIsLeft, isTurn));
+        stairs.add(new StairInfo(newX, newY, nextIsLeft, isTurn, newObstacle, newItem));
 
         // (생략: 리스트 관리 로직)
         if (stairs.size() > INITIAL_STAIR_COUNT + 10) {
@@ -182,7 +201,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
             System.out.println("Game Over");
         }
 
-        // (TODO: 여기에 시간 제한/체력 게이지 감소 로직을 추가할 수 있습니다.)
     }
 
     // --- 7. 캐릭터 이동 및 계단 체크 로직 ---
