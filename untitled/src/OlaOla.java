@@ -42,7 +42,12 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
     private Random random = new Random();
 
     private boolean requiresDirectionChange = false;
-    //private final int CHANGE_FREQUENCY = 5; //키를 강제로 전환해야 하는 빈도
+
+    public enum GameMode {
+        CLASSIC_MODE,
+        TEST_MODE
+    }
+    private GameMode currentGameMode = GameMode.CLASSIC_MODE;
 
     private class StairInfo {
         Rectangle bounds;
@@ -78,7 +83,10 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
     private boolean isPlayerFacingLeft = false;
 
     // 생성자: 게임의 모든 것을 초기화합니다.
-    public OlaOla() {
+    public OlaOla(GameMode mode) {
+        //this();
+        this.currentGameMode = mode;
+
         // JPanel 기본 설정
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
         setBackground(Color.BLACK);
@@ -300,6 +308,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
                 isPlayerFacingLeft = !isPlayerFacingLeft;
                 requiresDirectionChange = false;
                 System.out.println("방향 전환 성공: "+ currentDirectionKey);
+                playerClimb();
 
         }
 
@@ -395,12 +404,18 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
             g.setFont(new Font("SansSerif", Font.BOLD, 24));
             g.drawString("TURN KEY : [" + currentDirectionKey + "]", GAME_WIDTH - 200, 400);
         }
+        if(currentGameMode == GameMode.TEST_MODE) {
+            g.setColor(Color.PINK);
+            g.setFont(new Font("SansSerif", Font.BOLD, 24));
+            g.drawString("시험기간이 쫓아온다", 400,40);
+        }
         // 4. 게임 오버 메시지
         if (isGameOver) {
             g.setColor(Color.RED);
             g.setFont(new Font("SansSerif", Font.BOLD, 40));
             g.drawString("GAME OVER", GAME_WIDTH / 2 - 120, GAME_HEIGHT / 2);
         }
+
     }
 
     // Timer 이벤트 처리 (게임 루프)
@@ -419,17 +434,33 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("올라올라");
-            OlaOla gamePanel = new OlaOla();
-
-            frame.add(gamePanel);
-            frame.pack();
             frame.setResizable(false);
             frame.setLocationRelativeTo(null);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+            ActionListener startAction = e-> {
+
+                String command = e.getActionCommand();
+                GameMode selectedMode = GameMode.valueOf(command);
+
+                frame.getContentPane().removeAll();
+                OlaOla gamePanel = new OlaOla(selectedMode);
+                frame.add(gamePanel);
+
+                frame.pack();
+                frame.setLocationRelativeTo(null);
+                gamePanel.requestFocusInWindow();
+                frame.revalidate();
+                frame.repaint();
+            };
+            StartPanel startPanel = new StartPanel(startAction);
+            frame.add(startPanel);
+            frame.pack();
+            frame.setLocationRelativeTo(null);
             frame.setVisible(true);
 
             // 키 입력이 작동하도록 게임 패널에 포커스를 줍니다.
-            gamePanel.requestFocusInWindow();
+            //gamePanel.requestFocusInWindow();
         });
     }
 } 
