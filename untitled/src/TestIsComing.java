@@ -8,7 +8,7 @@ import java.util.Random;
 /**
  * 게임 메인 클래스: JFrame, JPanel 설정, 게임 루프(Timer), 키 입력, 그리기 담당
  */
-public class OlaOla extends JPanel implements ActionListener, KeyListener {
+public class TestIsComing extends JPanel implements ActionListener, KeyListener {
 
     // 게임 상수
     private final int GAME_WIDTH = 800;
@@ -47,7 +47,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
         CLASSIC_MODE,
         TEST_MODE
     }
-    private GameMode currentGameMode = GameMode.CLASSIC_MODE;
 
     private class StairInfo {
         Rectangle bounds;
@@ -83,7 +82,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
     private boolean isPlayerFacingLeft = false;
 
     // 생성자: 게임의 모든 것을 초기화합니다.
-    public OlaOla() {
+    public TestIsComing() {
 
         // JPanel 기본 설정
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
@@ -132,7 +131,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
         StairInfo lastStair = stairs.get(stairs.size() - 1);
         int newY = lastStair.bounds.y - STAIR_GAP;
 
-        int expectedX = lastStair.isLeftDirection? lastStair.bounds.x - STAIR_WIDTH : lastStair.bounds.x + STAIR_WIDTH;
+        int expectedX = lastStair.isLeftDirection ? lastStair.bounds.x - STAIR_WIDTH : lastStair.bounds.x + STAIR_WIDTH;
 
         boolean cannotGoStraight = (expectedX < 0) || (expectedX + STAIR_WIDTH > GAME_WIDTH);
 
@@ -176,7 +175,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
 
         // 4. 최종 안전 장치 (경계 확인)
         if (newX < 0) newX = 50;
-        if (newX + STAIR_WIDTH > GAME_WIDTH) newX = GAME_WIDTH - STAIR_WIDTH - 50 ;
+        if (newX + STAIR_WIDTH > GAME_WIDTH) newX = GAME_WIDTH - STAIR_WIDTH - 50;
 
         ObstacleType newObstacle = ObstacleType.NONE;
         ItemType newItem = ItemType.NONE;
@@ -303,10 +302,10 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
         String pressedKey = KeyEvent.getKeyText(e.getKeyCode()).toUpperCase();
 
         if (pressedKey.equals(currentDirectionKey)) {
-                isPlayerFacingLeft = !isPlayerFacingLeft;
-                requiresDirectionChange = false;
-                System.out.println("방향 전환 성공: "+ currentDirectionKey);
-                playerClimb();
+            isPlayerFacingLeft = !isPlayerFacingLeft;
+            requiresDirectionChange = false;
+            System.out.println("방향 전환 성공: " + currentDirectionKey);
+            playerClimb();
 
         }
 
@@ -351,7 +350,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
             }
             g.fillRect(stair.bounds.x, stair.bounds.y, stair.bounds.width, stair.bounds.height);
         }
-        Graphics2D g2d = (Graphics2D)g.create();
+        Graphics2D g2d = (Graphics2D) g.create();
         if (player.getImage() != null) {
 
             // 반전이 필요한 경우
@@ -397,11 +396,16 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
         g.drawString("Score: " + score, 10, 20);
         g.drawString("Direction: " + (isPlayerFacingLeft ? "LEFT" : "RIGHT"), 10, 40);
 
-        if(requiresDirectionChange) {
+        if (requiresDirectionChange) {
             g.setColor(Color.CYAN);
             g.setFont(new Font("SansSerif", Font.BOLD, 24));
             g.drawString("TURN KEY : [" + currentDirectionKey + "]", GAME_WIDTH - 200, 400);
         }
+
+        g.setColor(Color.PINK);
+        g.setFont(new Font("SansSerif", Font.BOLD, 24));
+        g.drawString("시험기간이 쫓아온다", 400, 40);
+
         // 4. 게임 오버 메시지
         if (isGameOver) {
             g.setColor(Color.RED);
@@ -420,45 +424,11 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
     }
 
     // 사용하지 않는 KeyListener 메소드
-    @Override public void keyTyped(KeyEvent e) {}
-    @Override public void keyReleased(KeyEvent e) {}
-
-    // --- 10. 메인 메소드: 프로그램 실행 ---
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("올라올라");
-            frame.setResizable(false);
-            frame.setLocationRelativeTo(null);
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-            ActionListener startAction = e -> {
-                String command = e.getActionCommand();
-                TestIsComing.GameMode selectedMode = TestIsComing.GameMode.valueOf(command);
-
-                frame.getContentPane().removeAll();
-                TestIsComing gamePanel = new TestIsComing();
-                JPanel playGamePanel = null;
-                if(selectedMode== TestIsComing.GameMode.CLASSIC_MODE) {
-                    playGamePanel = new OlaOla();
-                }
-                else if (selectedMode == TestIsComing.GameMode.TEST_MODE) {
-                    playGamePanel = new TestIsComing();
-                }
-
-                frame.add(playGamePanel);
-                frame.pack();
-                frame.setLocationRelativeTo(null);
-                playGamePanel.requestFocusInWindow();
-                frame.revalidate();
-                frame.repaint();
-            };
-            StartPanel startPanel = new StartPanel(startAction);
-            frame.add(startPanel);
-
-            frame.pack();
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
-
-        });
+    @Override
+    public void keyTyped(KeyEvent e) {
     }
-} 
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+    }
+}
