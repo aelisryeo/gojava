@@ -31,9 +31,9 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener {
     private Timer loopTimer;
     private final int GAME_TICK_MS = 16;
     private double timePerStair;
-    private final double INITIAL_STAIR_TIME = 3000.0;
-    private final double MIN_TIME_PER_STAIR = 250.0;
-    private final double TIME_REDUCTION = 100.0;
+    private final double INITIAL_STAIR_TIME = 1000.0;
+    private final double MIN_TIME_PER_STAIR = 100.0;
+    private final double TIME_REDUCTION = 200.0;
     private final int DIFFICULTY = 20;
     private double remainTime;
     //;인식잘안되길래 일단 h로 넣어둠
