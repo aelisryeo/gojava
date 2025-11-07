@@ -18,4 +18,7 @@ public interface GameConstants {
     int DIFFICULTY = 20;
 
     String[] DIRECTION_KEYS = {"A", "S", "D", "F", "H", "J", "K", "L"};
+
+    String[] LEFT_HAND_KEYS = {"A", "S", "D", "F"};
+    String[] RIGHT_HAND_KEYS = {"H", "J", "K", "L"};
 }

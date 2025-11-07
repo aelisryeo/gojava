@@ -24,7 +24,22 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
     private boolean requiresDirectionChange = false;
 
     private boolean isPlayerFacingLeft = false;
+    private int currentLife;
 
+    private int totalStudentSpawnCount = 0;
+
+    private enum GameState {
+        CLIMBING,
+        MINIGAME_STUDENT,
+        MINIGAME_MUSHROOM
+    }
+
+    private GameState currentState = GameState.CLIMBING;
+    private String studentMinigameWord;
+    private String studentMinigameInput;
+    private String[] mushroomMinigameKeys;
+    private int mushroomMinigameProgress;
+    private final int MUSHROOM_GOAL = 10;
 
     public OlaOla() {
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
@@ -36,6 +51,8 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
         this.timePerStair = INITIAL_STAIR_TIME;
         this.remainTime = this.timePerStair;
+
+        this.currentLife = LIFE;
 
         loopTimer = new Timer(GAME_TICK_MS, this);
         loopTimer.start();
@@ -101,6 +118,38 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         ObstacleType newObstacle = ObstacleType.NONE;
         ItemType newItem = ItemType.NONE;
 
+
+
+        if (!isTurn) {
+            if (random.nextDouble() < 0.10) { //TODO 이것도 좀...,. 로직을 바꿔야겟어
+
+                boolean canSpawnStudent = (totalStudentSpawnCount < 5);
+
+                ArrayList<ObstacleType> possibleObstacles = new ArrayList<>();
+                possibleObstacles.add(ObstacleType.PROFESSOR);
+                possibleObstacles.add(ObstacleType.MUSHROOM);
+
+                if (canSpawnStudent) {
+                    possibleObstacles.add(ObstacleType.STUDENT);
+                }
+
+                if (!possibleObstacles.isEmpty()) {
+                    int obstacleIndex = random.nextInt(possibleObstacles.size());
+                    newObstacle = possibleObstacles.get(obstacleIndex);
+                }
+
+                if (newObstacle == ObstacleType.STUDENT) {
+                    totalStudentSpawnCount++;
+                    System.out.println("학생  + totalStudentSpawnCount + 번째 "); // 디버깅용
+                }
+
+            }
+        } else {
+            System.out.println("꺾이는 계단... 인데 왜자꾸 장애물이 처 나오냐고요");
+        }
+
+
+        System.out.println("DEBUG: isTurn=" + isTurn + ", Obstacle=" + newObstacle);
         stairs.add(new StairInfo(newX, newY, STAIR_WIDTH, STAIR_HEIGHT, nextIsLeft, isTurn, newObstacle, newItem));
 
         if (stairs.size() > INITIAL_STAIR_COUNT + 10) {
@@ -116,7 +165,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             return;
         }
 
-        remainTime -= GAME_TICK_MS; // 상수 사용
+        remainTime -= GAME_TICK_MS;
 
         if (remainTime <= 0) {
             isGameOver = true;
@@ -165,6 +214,12 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         player.setX(nextPlayerX);
         stairs.remove(0);
 
+        StairInfo stairJustLandedOn = stairs.get(0);
+        if (stairJustLandedOn.obstacle != ObstacleType.NONE) {
+            triggerObstacle(stairJustLandedOn.obstacle);
+            stairJustLandedOn.obstacle = ObstacleType.NONE;
+        }
+
         for (StairInfo stair : stairs) {
             stair.bounds.y += STAIR_GAP;
         }
@@ -173,6 +228,57 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         score++;
         updateDifficulty();
         this.remainTime = this.timePerStair;
+    }
+
+    private void triggerObstacle(ObstacleType obstacle) {
+        System.out.println(obstacle + " 장애물");
+
+        if (obstacle == ObstacleType.PROFESSOR) {
+            score = Math.max(0, score - 10); //TODO 점수 깎는 수치를 1에서 10 사이 랜덤으로 해도 될듯... 생명도 하나 깎고...
+            //TODO 이거 점프로 스킵할수잇게ㄱㄱ
+            System.out.println("과제를 왜 이렇게 해왓나 학생... 자네는 감점이네 (현재: " + score + "점)");
+            return;
+        }
+
+        loopTimer.stop();
+
+        if (obstacle == ObstacleType.STUDENT) { //TODO 시간제한 만들기 그리고 뭔가 안됨(시밸) 그리고 특정점수마다 뜨도록 바꾸기
+            currentState = GameState.MINIGAME_STUDENT;
+            studentMinigameWord = "볶음밥돌리자";
+            studentMinigameInput = "";
+        } else if (obstacle == ObstacleType.MUSHROOM) {
+            currentState = GameState.MINIGAME_MUSHROOM;
+            mushroomMinigameKeys = new String[2];
+            String key1 = LEFT_HAND_KEYS[random.nextInt(LEFT_HAND_KEYS.length)];
+            String key2 = RIGHT_HAND_KEYS[random.nextInt(RIGHT_HAND_KEYS.length)];
+
+            // 50% 확률로 순서 섞기
+            if (random.nextBoolean()) {
+                mushroomMinigameKeys[0] = key2;
+                mushroomMinigameKeys[1] = key1;
+            } else {
+                mushroomMinigameKeys[0] = key1;
+                mushroomMinigameKeys[1] = key2;
+            }
+            mushroomMinigameProgress = 0;
+            System.out.println("버섯 키: " + mushroomMinigameKeys[0] + ", " + mushroomMinigameKeys[1]);
+        }
+    }
+
+    private void endMinigame(boolean success) {
+        if (success) {
+            System.out.println("미니게임 성공");
+            currentState = GameState.CLIMBING;
+            loopTimer.start();
+        } else {
+            System.out.println("미니게임 실패");
+            handleWrongKey();
+
+            if (!isGameOver) {
+                currentState = GameState.CLIMBING;
+                loopTimer.start();
+            }
+        }
     }
 
 
@@ -189,26 +295,114 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         currentDirectionKey = DIRECTION_KEYS[randomIndex];
     }
 
+    private void handleWrongKey() {
+        if (isGameOver) return;
+
+        currentLife--;
+        System.out.println("life--" + currentLife);
+
+        // TODO: 여기서 화면을 붉게 깜빡이도록
+
+        if (currentLife <= 0) {
+            isGameOver = true;
+            System.out.println("game over");
+        }
+    }
+
     @Override
     public void keyPressed(KeyEvent e) {
         if (isGameOver) {
             return;
         }
 
+        switch (currentState) { //TODO...
+            case CLIMBING:
+                handleClimbingInput(e);
+                break;
+            case MINIGAME_STUDENT:
+                handleStudentMinigameInput(e);
+                break;
+            case MINIGAME_MUSHROOM:
+                handleMushroomMinigameInput(e);
+                break;
+        }
+
+        repaint();
+    }
+
+    private void handleClimbingInput(KeyEvent e) {
         String pressedKey = KeyEvent.getKeyText(e.getKeyCode()).toUpperCase();
+        boolean isKeyValid = false;
 
         if (pressedKey.equals(currentDirectionKey)) {
             isPlayerFacingLeft = !isPlayerFacingLeft;
             requiresDirectionChange = false;
             System.out.println("방향 전환 성공: "+ currentDirectionKey);
             playerClimb();
+            isKeyValid = true;
         }
 
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
             playerClimb();
+            isKeyValid = true;
         }
 
-        repaint();
+        if (!isKeyValid) {
+            if (e.getKeyCode() != KeyEvent.VK_SHIFT &&
+                    e.getKeyCode() != KeyEvent.VK_CONTROL &&
+                    e.getKeyCode() != KeyEvent.VK_ALT &&
+                    e.getKeyCode() != KeyEvent.VK_META)
+            {
+                handleWrongKey();
+            }
+        }
+    }
+
+
+    private void handleStudentMinigameInput(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+            if (!studentMinigameInput.isEmpty()) {
+                studentMinigameInput = studentMinigameInput.substring(0, studentMinigameInput.length() - 1);
+            }
+        } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+            if (studentMinigameInput.equals(studentMinigameWord)) {
+                endMinigame(true);
+            } else {
+                endMinigame(false);
+            }
+        } else if (java.lang.Character.isLetter(e.getKeyChar())) {
+            studentMinigameInput += java.lang.Character.toUpperCase(e.getKeyChar());
+
+            if (studentMinigameInput.equals(studentMinigameWord)) {
+                endMinigame(true);
+            } else if (!studentMinigameWord.startsWith(studentMinigameInput)) {
+                endMinigame(false);
+            }
+        }
+    }
+
+
+    private void handleMushroomMinigameInput(KeyEvent e) {
+        String pressedKey = KeyEvent.getKeyText(e.getKeyCode()).toUpperCase();
+
+        if (pressedKey.equals(mushroomMinigameKeys[0]) || pressedKey.equals(mushroomMinigameKeys[1])) {
+            int expectedKeyIndex = mushroomMinigameProgress % 2;
+            if (pressedKey.equals(mushroomMinigameKeys[expectedKeyIndex])) {
+                mushroomMinigameProgress++;
+                System.out.println("연타 " + mushroomMinigameProgress);
+            }
+            if (mushroomMinigameProgress >= MUSHROOM_GOAL) {
+                endMinigame(true);
+            }
+        } else {
+            if (e.getKeyCode() != KeyEvent.VK_SHIFT &&
+                    e.getKeyCode() != KeyEvent.VK_CONTROL &&
+                    e.getKeyCode() != KeyEvent.VK_ALT &&
+                    e.getKeyCode() != KeyEvent.VK_META)
+            {
+                endMinigame(false);
+            }
+        }
     }
 
     // --- 9. 그리기 (랜더링) ---
@@ -240,6 +434,25 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 g.setColor(Color.WHITE);
             }
             g.fillRect(stair.bounds.x, stair.bounds.y, stair.bounds.width, stair.bounds.height);
+
+            if (stair.obstacle != ObstacleType.NONE) {
+
+                String obstacleText = "";
+
+                if (stair.obstacle == ObstacleType.PROFESSOR) {
+                    g.setColor(Color.MAGENTA);
+                    obstacleText = "P"; // Professor
+                } else if (stair.obstacle == ObstacleType.STUDENT) {
+                    g.setColor(Color.CYAN);
+                    obstacleText = "S"; // Student
+                } else if (stair.obstacle == ObstacleType.MUSHROOM) {
+                    g.setColor(Color.GREEN);
+                    obstacleText = "M"; // Mushroom
+                }
+
+                g.setFont(new Font("SansSerif", Font.BOLD, 14));
+                g.drawString(obstacleText, stair.bounds.x + 5, stair.bounds.y + 15);
+            }
         }
 
         Graphics2D g2d = (Graphics2D)g.create();
@@ -280,12 +493,46 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             g.drawString("TURN KEY : [" + currentDirectionKey + "]", GAME_WIDTH - 200, 400);
         }
 
+        if (currentState != GameState.CLIMBING) {
+            g.setColor(new Color(0, 0, 0, 150)); // 반투명한 검은색 배경
+            g.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("SansSerif", Font.BOLD, 30));
+
+            if (currentState == GameState.MINIGAME_STUDENT) {
+                g.drawString("입력하시긔", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
+                g.setColor(Color.CYAN);
+                g.drawString("단어: " + studentMinigameWord, GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2);
+                g.setColor(Color.YELLOW);
+                g.drawString("입력: " + studentMinigameInput, GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 + 50);
+
+            } else if (currentState == GameState.MINIGAME_MUSHROOM) {
+                g.drawString("버섯패시긔", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
+                g.setColor(Color.GREEN);
+                g.drawString("[" + mushroomMinigameKeys[0] + "] 와 [" + mushroomMinigameKeys[1] + "] 연타",
+                        GAME_WIDTH / 2 - 250, GAME_HEIGHT / 2);
+
+                //TODO 아오 시밸 이것도 시간추가해야됨
+                g.setColor(Color.GRAY);
+                g.fillRect(GAME_WIDTH / 2 - 150, GAME_HEIGHT / 2 + 50, 300, 30);
+                g.setColor(Color.YELLOW);
+                int progressWidth = (int) (300.0 * (mushroomMinigameProgress / (double)MUSHROOM_GOAL));
+                g.fillRect(GAME_WIDTH / 2 - 150, GAME_HEIGHT / 2 + 50, progressWidth, 30);
+            }
+        }
+
+
         // 4. 게임 오버 메시지
         if (isGameOver) {
             g.setColor(Color.RED);
             g.setFont(new Font("SansSerif", Font.BOLD, 40));
             g.drawString("GAME OVER", GAME_WIDTH / 2 - 120, GAME_HEIGHT / 2);
         }
+
+        g.setColor(Color.RED);
+        g.setFont(new Font("SansSerif", Font.BOLD, 18));
+        g.drawString("Life: " + currentLife, GAME_WIDTH - 80, 40);
     }
 
     // Timer 이벤트 처리 (게임 루프)
