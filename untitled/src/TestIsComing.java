@@ -19,10 +19,20 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener 
     private final int STAIR_GAP = 50;     // 계단 간 수직 간격 (캐릭터 한 칸 이동 거리)
     private final int INITIAL_STAIR_COUNT = 10; // 초기 생성 계단 개수
 
-    private final int PLAYER_Y_POSITION = GAME_HEIGHT - 100;
+    private final int PLAYER_Y_POSITION = GAME_HEIGHT - 300;
     private int LIFE = 3;
     // 게임 객체
     private Character player;
+    private int playerStairIndex = 0;
+
+    private Character chaser;
+    private final int CHASER_MOVE_INTERVAL = 700;
+    private int chaserMoveTimer = 0;
+    private int chaserStairIndex = 0;
+    //private final double CHASER_SPEED = 0.05;
+    private final int CHASER_OFFSET_X = 20;
+    private double chaserY;
+
     private List<StairInfo> stairs = new ArrayList<>(); // 계단을 관리하는 리스트
 
     private boolean isGameOver = false;
@@ -42,11 +52,6 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener 
     private Random random = new Random();
 
     private boolean requiresDirectionChange = false;
-
-    public enum GameMode {
-        CLASSIC_MODE,
-        TEST_MODE
-    }
 
     private class StairInfo {
         Rectangle bounds;
@@ -80,6 +85,7 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener 
     }
 
     private boolean isPlayerFacingLeft = false;
+    private boolean isChaserFacingLeft = false;
 
     // 생성자: 게임의 모든 것을 초기화합니다.
     public TestIsComing() {
@@ -97,18 +103,27 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener 
 
         loopTimer = new Timer(GAME_TICK_MS, this);
         loopTimer.start();
-        // 캐릭터 객체 생성
-        // 초기 위치는 화면 중앙 하단에 가깝게 설정
 
-// Character 객체 생성 시, 파일명만 전달합니다. (경로는 Character.java에서 처리)
+        int initialPlayerY = GAME_HEIGHT - 300;
+
+// Character 객체 생성 시, 파일명만 전달합니다.
         player = new Character(
                 (GAME_WIDTH / 2) - 32,
-                PLAYER_Y_POSITION,
+                initialPlayerY,
                 "character.png" // "res/" 접두어를 제거하고 파일명만 남깁니다.
         );
 
+        this.chaserY = initialPlayerY + 150;
+        chaser = new Character(
+                player.getX() + CHASER_OFFSET_X,
+                (int)this.chaserY,
+                "chaser.png"
+        );
         // 초기 계단 생성
         initializeStairs();
+
+        StairInfo initialStair = stairs.get(chaserStairIndex);
+
         updateDirectionKey();
 
     }
@@ -116,7 +131,7 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener 
 
     private void initializeStairs() {
         int currentX = player.getX() - (STAIR_WIDTH / 2) + (player.getWidth() / 2);
-        int currentY = GAME_HEIGHT - 40;
+        int currentY =  player.getY() + player.getHeight() - STAIR_HEIGHT; //GAME_HEIGHT - 40;
 
         stairs.add(new StairInfo(currentX, currentY, false, false, ObstacleType.NONE, ItemType.NONE));
 
@@ -199,6 +214,15 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener 
             return;
         }
 
+        chaserMoveTimer += GAME_TICK_MS;
+        while (chaserMoveTimer >= CHASER_MOVE_INTERVAL) {
+            if(chaserStairIndex < stairs.size() - 1) {
+                chaserClimb();
+            }
+            chaserMoveTimer -= CHASER_MOVE_INTERVAL;
+            if (isGameOver) return;
+        }
+
         remainTime -= GAME_TICK_MS;
 
         if (remainTime <= 0) {
@@ -207,77 +231,100 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener 
         }
 
     }
+    private void chaserClimb() {
+        if (chaserStairIndex >= stairs.size() -1 ) {
+            chaser.setY(chaser.getY() + 20);
+            return;
+        }
+        if (stairs.size() <= chaserStairIndex + 1) return;
+        // 1. 다음 목표 계단
+        StairInfo nextStair = stairs.get(chaserStairIndex + 1);
+
+        // 2. ⭐ 추격자 위치 스냅 ⭐
+        int targetX = nextStair.bounds.x + (STAIR_WIDTH / 2) - (chaser.getWidth() / 2);
+        int targetY = nextStair.bounds.y - chaser.getHeight();
+
+        chaser.setX(targetX);
+        chaser.setY(targetY); // Chaser 객체의 Y 좌표 업데이트
+        chaserStairIndex++;
+
+        // 3. ⭐ 플레이어와의 충돌 감지 ⭐
+        // 추격자의 Y 위치가 플레이어의 Y 위치보다 위에 있거나 같으면 충돌
+        if (chaser.getY() <= player.getY()) {
+            isGameOver = true;
+            System.out.println("게임 오버! 추격자에게 잡혔습니다.");
+            return;
+        }
+    }
 
     // --- 7. 캐릭터 이동 및 계단 체크 로직 ---
     private void playerClimb() {
-        if (isGameOver || stairs.size() < 2) return;
 
-        // 1. 다음 목표 계단 (현재 캐릭터가 밟고 있는 계단은 0번이 아닐 수 있음. 가장 아래 계단이 목표)
-        StairInfo currentStair = stairs.get(0);
-        StairInfo nextStair = stairs.get(1);
-        StairInfo nnextStair = stairs.get(2);
+        if (isGameOver || stairs.size() < playerStairIndex + 2) return;
+        StairInfo targetStair = stairs.get(playerStairIndex + 1);
 
-
-        // ⭐ 1. 방향 전환 요구사항 체크 ⭐
-        // 현재 계단에서 다음 계단으로 갈 때 방향이 바뀌는지 확인
-        // 즉, stairs[0]의 isLeftDirection과 stairs[1]의 isLeftDirection이 다르면 꺾이는 지점
-        if (nnextStair.isLeftDirection != nextStair.isLeftDirection) {
-            // 방향이 바뀔 때만 키 전환을 요구합니다.
-            requiresDirectionChange = true;
-            // 방향 전환이 요구될 때 새로운 키를 할당합니다.
-            // (이 키를 눌러야 다음 계단으로 이동하며, isPlayerFacingLeft도 반전됩니다.)
-            updateDirectionKey();
-        } else {
-            // 방향이 바뀌지 않으면 전환 요구를 해제합니다.
-            requiresDirectionChange = false;
-        }
-
-        int moveDistance = STAIR_WIDTH;
-        int nextPlayerX;
-        if (isPlayerFacingLeft) {
-            nextPlayerX = player.getX() - moveDistance;
-        } else {
-            nextPlayerX = player.getX() + moveDistance;
-        }
-
-        int nextPlayerCenterX = nextPlayerX + (player.getWidth() / 2);
-        if (
-            // 다음 위치의 중심이 목표 계단의 시작점보다 작거나
-                nextPlayerCenterX < nextStair.bounds.x ||
-                        // 다음 위치의 중심이 목표 계단의 끝점보다 크다면, 즉 계단 밖이라면
-                        nextPlayerCenterX > nextStair.bounds.x + nextStair.bounds.width
-        ) {
-            System.out.println("게임 오버! 계단 경로를 벗어났습니다.");
-            isGameOver = true;
-            return;
-        }
-        // 2. 충돌(게임 오버) 체크
-        // ⭐ 3. 방향 오류 체크 (다음 계단의 방향과 캐릭터의 방향이 일치하는지 확인) ⭐
-        if (nextStair.isLeftDirection != isPlayerFacingLeft) {
+        if (targetStair.isLeftDirection != isPlayerFacingLeft) {
             System.out.println("게임 오버! 잘못된 방향으로 올랐습니다.");
             isGameOver = true;
             return;
         }
 
-        player.setX(nextPlayerX);
+        // 2. 이동 확정: 다음 계단(targetStair)의 중앙에 스냅
+        int targetX = targetStair.bounds.x + (STAIR_WIDTH / 2) - (player.getWidth() / 2);
+        player.setX(targetX);
+        playerStairIndex++;
 
-        stairs.remove(0);
-
-        // 3. 게임 월드 스크롤 (캐릭터를 이동시키는 대신 계단 전체를 아래로 내립니다.)
-        for (StairInfo stair : stairs) {
-            stair.bounds.y += STAIR_GAP; // 모든 계단을 STAIR_GAP만큼 내립니다.
+        // 3. 다음 턴에 방향 전환이 필요한지 판단
+        // 새로 밟은 계단(현재 Index)의 '다음' 계단(Index + 1)을 확인합니다.
+        if (stairs.size() >= playerStairIndex + 2) {
+            StairInfo nnextStair = stairs.get(playerStairIndex + 1);
+            if (nnextStair.isTurnPoint) {
+                requiresDirectionChange = true;
+                updateDirectionKey();
+            } else {
+                requiresDirectionChange = false;
+            }
+        } else {
+            requiresDirectionChange = false;
         }
 
-        // 4. 새로운 계단 생성
+        // 4. 스크롤 및 생성
+        for (StairInfo stair : stairs) {
+            stair.bounds.y += STAIR_GAP;
+        }
+        chaser.setY(chaser.getY() + STAIR_GAP);
+
+        // 5. 화면 밖으로 벗어난 계단 제거 (동시에 playerStairIndex도 정리해야 합니다.)
+        removeOldStairs();
+
         generateNewStair();
-
-        // 5. 점수 증가
         score++;
-
         updateDifficulty();
         this.remainTime = this.timePerStair;
     }
 
+
+    private void removeOldStairs() {
+        int removedCount = 0;
+        while (!stairs.isEmpty() && stairs.get(0).bounds.y + stairs.get(0).bounds.height > GAME_HEIGHT) {
+            stairs.remove(0);
+            removedCount++;
+
+            // ⭐⭐⭐ 핵심 수정: 밟고 지나간 계단이 제거되면 플레이어의 인덱스를 1 감소시켜 동기화합니다. ⭐⭐⭐
+            /*if (playerStairIndex > 0) {
+                playerStairIndex--;
+            }
+            // playerStairIndex가 0인 상태에서 제거되면, 플레이어는 여전히 새로 0번이 된 계단을 밟고 있는 것으로 간주합니다.
+            if (chaserStairIndex > 0) {
+                chaserStairIndex--;
+            }
+             */
+            if (removedCount > 0) {
+                playerStairIndex = Math.max(0, playerStairIndex - removedCount);
+                chaserStairIndex = Math.max(0, chaserStairIndex - removedCount);
+            }
+        }
+    }
 
     private void updateDifficulty() {
         if (score > 0 && score % DIFFICULTY == 0) {
@@ -312,10 +359,6 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener 
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
             playerClimb();
         }
-
-        // 캐릭터의 방향에 따라 x 위치를 조정하여 방향 전환을 시각적으로 보여줄 수 있습니다.
-        // 여기서는 단순함을 위해 생략하고, 다음 단계에서 시각적 처리를 추가할 수 있습니다.
-
         repaint();
     }
 
@@ -350,45 +393,9 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener 
             }
             g.fillRect(stair.bounds.x, stair.bounds.y, stair.bounds.width, stair.bounds.height);
         }
-        Graphics2D g2d = (Graphics2D) g.create();
-        if (player.getImage() != null) {
 
-            // 반전이 필요한 경우
-            if (isPlayerFacingLeft) {
-                // (1) X축 기준으로 반전 변환을 적용합니다. (scale(-1, 1))
-                g2d.scale(-1, 1);
-
-                // (2) 반전된 후의 좌표계에서 캐릭터를 그립니다.
-                //     - X 좌표를 음수로 설정하여 원래 위치로 되돌립니다.
-                //     - X 좌표 = -(플레이어 실제 X 좌표 + 플레이어 너비)
-                int flippedX = -(player.getX() + player.getWidth());
-
-                g2d.drawImage(
-                        player.getImage(),
-                        flippedX,
-                        player.getY(),
-                        player.getWidth(),
-                        player.getHeight(),
-                        this
-                );
-
-            } else {
-                // 반전이 필요 없는 경우: 일반 그리기
-                g2d.drawImage(
-                        player.getImage(),
-                        player.getX(),
-                        player.getY(),
-                        player.getWidth(),
-                        player.getHeight(),
-                        this
-                );
-            }
-        }
-
-        // g2d 사용을 마쳤으므로 dispose() 호출 (필수)
-        g2d.dispose();
-        // 2. 캐릭터 그리기
-        //player.draw(g, this);
+        drawCharacter(g,chaser, chaser.getX(), chaser.getY(), isChaserFacingLeft);
+        drawCharacter(g, player, player.getX(), player.getY(), isPlayerFacingLeft);
 
         // 3. 점수 및 정보 표시
         g.setColor(Color.YELLOW);
@@ -413,6 +420,22 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener 
             g.drawString("GAME OVER", GAME_WIDTH / 2 - 120, GAME_HEIGHT / 2);
         }
 
+    }
+
+    private void drawCharacter(Graphics g, Character character, int x, int y, boolean isFacingLeft) {
+        if (character == null || character.getImage() == null) return;
+
+        Graphics2D g2d = (Graphics2D) g.create();
+
+        if (isFacingLeft) {
+            g2d.scale(-1, 1);
+            int flippedX = -(x + character.getWidth());
+
+            g2d.drawImage(character.getImage(), flippedX, y, character.getWidth(), character.getHeight(), this);
+        } else {
+            g2d.drawImage(character.getImage(), x, y, character.getWidth(), character.getHeight(), this);
+        }
+        g2d.dispose();
     }
 
     // Timer 이벤트 처리 (게임 루프)
