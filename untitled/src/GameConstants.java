@@ -13,7 +13,7 @@ public interface GameConstants {
 
     int GAME_TICK_MS = 16;
     double INITIAL_STAIR_TIME = 1000.0;
-    double MIN_TIME_PER_STAIR = 100.0;
+    double MIN_TIME_PER_STAIR = 500.0;
     double TIME_REDUCTION = 200.0;
     int DIFFICULTY = 20;
 
