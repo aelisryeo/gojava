@@ -501,14 +501,14 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             g.setFont(new Font("SansSerif", Font.BOLD, 30));
 
             if (currentState == GameState.MINIGAME_STUDENT) {
-                g.drawString("입력하시긔", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
+                g.drawString("입력하세요", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
                 g.setColor(Color.CYAN);
                 g.drawString("단어: " + studentMinigameWord, GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2);
                 g.setColor(Color.YELLOW);
                 g.drawString("입력: " + studentMinigameInput, GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 + 50);
 
             } else if (currentState == GameState.MINIGAME_MUSHROOM) {
-                g.drawString("버섯패시긔", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
+                g.drawString("버섯을 물리치세요", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
                 g.setColor(Color.GREEN);
                 g.drawString("[" + mushroomMinigameKeys[0] + "] 와 [" + mushroomMinigameKeys[1] + "] 연타",
                         GAME_WIDTH / 2 - 250, GAME_HEIGHT / 2);
