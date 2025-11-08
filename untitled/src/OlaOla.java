@@ -121,7 +121,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
 
         if (!isTurn) {
-            if (random.nextDouble() < 0.10) { //TODO 이것도 좀...,. 로직을 바꿔야겟어
+            if (random.nextDouble() < 0.50) { //TODO 이것도 좀...,. 로직을 바꿔야겟어
 
                 boolean canSpawnStudent = (totalStudentSpawnCount < 5);
 
@@ -140,16 +140,12 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
                 if (newObstacle == ObstacleType.STUDENT) {
                     totalStudentSpawnCount++;
-                    System.out.println("학생  + totalStudentSpawnCount + 번째 "); // 디버깅용
+                    System.out.println("학생  + totalStudentSpawnCount + 번째 ");
                 }
 
             }
-        } else {
-            System.out.println("꺾이는 계단... 인데 왜자꾸 장애물이 처 나오냐고요");
         }
 
-
-        System.out.println("DEBUG: isTurn=" + isTurn + ", Obstacle=" + newObstacle);
         stairs.add(new StairInfo(newX, newY, STAIR_WIDTH, STAIR_HEIGHT, nextIsLeft, isTurn, newObstacle, newItem));
 
         if (stairs.size() > INITIAL_STAIR_COUNT + 10) {
@@ -244,7 +240,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
         if (obstacle == ObstacleType.STUDENT) { //TODO 시간제한 만들기 그리고 뭔가 안됨(시밸) 그리고 특정점수마다 뜨도록 바꾸기
             currentState = GameState.MINIGAME_STUDENT;
-            studentMinigameWord = "볶음밥돌리자";
+            studentMinigameWord = "TYPE";
             studentMinigameInput = "";
         } else if (obstacle == ObstacleType.MUSHROOM) {
             currentState = GameState.MINIGAME_MUSHROOM;
@@ -252,7 +248,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             String key1 = LEFT_HAND_KEYS[random.nextInt(LEFT_HAND_KEYS.length)];
             String key2 = RIGHT_HAND_KEYS[random.nextInt(RIGHT_HAND_KEYS.length)];
 
-            // 50% 확률로 순서 섞기
             if (random.nextBoolean()) {
                 mushroomMinigameKeys[0] = key2;
                 mushroomMinigameKeys[1] = key1;
@@ -440,13 +435,13 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 String obstacleText = "";
 
                 if (stair.obstacle == ObstacleType.PROFESSOR) {
-                    g.setColor(Color.MAGENTA);
+                    g.setColor(Color.RED);
                     obstacleText = "P"; // Professor
                 } else if (stair.obstacle == ObstacleType.STUDENT) {
-                    g.setColor(Color.CYAN);
+                    g.setColor(Color.RED);
                     obstacleText = "S"; // Student
                 } else if (stair.obstacle == ObstacleType.MUSHROOM) {
-                    g.setColor(Color.GREEN);
+                    g.setColor(Color.RED);
                     obstacleText = "M"; // Mushroom
                 }
 
@@ -501,14 +496,14 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             g.setFont(new Font("SansSerif", Font.BOLD, 30));
 
             if (currentState == GameState.MINIGAME_STUDENT) {
-                g.drawString("입력하시긔", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
+                g.drawString("입력하기", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
                 g.setColor(Color.CYAN);
                 g.drawString("단어: " + studentMinigameWord, GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2);
                 g.setColor(Color.YELLOW);
                 g.drawString("입력: " + studentMinigameInput, GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 + 50);
 
             } else if (currentState == GameState.MINIGAME_MUSHROOM) {
-                g.drawString("버섯패시긔", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
+                g.drawString("버섯", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
                 g.setColor(Color.GREEN);
                 g.drawString("[" + mushroomMinigameKeys[0] + "] 와 [" + mushroomMinigameKeys[1] + "] 연타",
                         GAME_WIDTH / 2 - 250, GAME_HEIGHT / 2);
