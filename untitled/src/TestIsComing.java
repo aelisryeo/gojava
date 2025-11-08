@@ -13,7 +13,10 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
     private int playerStairIndex = 0;
 
     private Character chaser;
-    private final int CHASER_MOVE_INTERVAL = 700;
+    private final int CHASER_MOVE_INTERVAL = 800;
+    private final int CHASER_INTERVAL_REDUCTION = 50;
+    private final int CHASER_MIN_INTERVAL = 20;
+    private int currentChaserInterval;
     private int chaserMoveTimer = 0;
     private int chaserStairIndex = 0;
     private final int CHASER_OFFSET_X = 20;
@@ -46,6 +49,8 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
         this.timePerStair = INITIAL_STAIR_TIME;
         this.remainTime = this.timePerStair;
+
+        this.currentChaserInterval = CHASER_MOVE_INTERVAL;
 
         loopTimer = new Timer(GAME_TICK_MS, this);
         loopTimer.start();
@@ -126,20 +131,20 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
         // --- 추격자 로직 ---
         chaserMoveTimer += GAME_TICK_MS;
-        while (chaserMoveTimer >= CHASER_MOVE_INTERVAL) {
+        while (chaserMoveTimer >= currentChaserInterval) {
             if(chaserStairIndex < playerStairIndex) {
                 chaserClimb();
             }
-            chaserMoveTimer -= CHASER_MOVE_INTERVAL;
+            chaserMoveTimer -= currentChaserInterval;
             if (isGameOver) return;
         }
 
-        remainTime -= GAME_TICK_MS;
+        //remainTime -= GAME_TICK_MS;
 
-        if (remainTime <= 0) {
-            isGameOver = true;
-            System.out.println("Game Over (Time)");
-        }
+        //if (remainTime <= 0) {
+        //    isGameOver = true;
+        //    System.out.println("Game Over (Time)");
+       //}
     }
 
     private void chaserClimb() {
@@ -227,8 +232,11 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
     private void updateDifficulty() {
         if (score > 0 && score % DIFFICULTY == 0) {
-            double newTime = timePerStair - TIME_REDUCTION;
-            timePerStair = Math.max(newTime, MIN_TIME_PER_STAIR);
+            //double newTime = timePerStair - TIME_REDUCTION;
+            //timePerStair = Math.max(newTime, MIN_TIME_PER_STAIR);
+
+            int newInterval = currentChaserInterval - CHASER_INTERVAL_REDUCTION;
+            currentChaserInterval = Math.max(newInterval,CHASER_MIN_INTERVAL);
         }
     }
 
@@ -271,6 +279,7 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         super.paintComponent(g);
 
         //남은 시간 바
+        /*
         if (!isGameOver) {
             double timePercent = Math.max(0, remainTime / timePerStair);
             if (timePercent > 0.5) g.setColor(Color.green);
@@ -279,6 +288,7 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
             int barWidth = (int) (GAME_WIDTH * timePercent);
             g.fillRect(0, 0, barWidth, 15);
         }
+         */
 
         // 1. 계단 그리기
         for (StairInfo stair : stairs) {

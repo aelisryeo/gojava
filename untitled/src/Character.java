@@ -9,8 +9,8 @@ public class Character {
     private BufferedImage characterImage;
     private int x;
     private int y;
-    private final int width = 64;  // 캐릭터 너비
-    private final int height = 64; // 캐릭터 높이
+    private final int width = 80;  // 캐릭터 너비
+    private final int height = 80; // 캐릭터 높이
 
     // 생성자: 초기 위치와 이미지 파일을 받아 로드합니다.
     public Character(int initialX, int initialY, String imagePath) {

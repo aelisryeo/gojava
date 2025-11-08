@@ -39,10 +39,10 @@ public class StartPanel extends JPanel {
 
         try {
             // [수정 제안]
-            bImage = ImageIO.read(getClass().getResourceAsStream("character.png"));
+            bImage = ImageIO.read(getClass().getResourceAsStream("startBackground.png"));
 
             if (bImage == null) {
-                System.err.println("배경 이미지 로드 실패: character.png 파일을 찾을 수 없습니다.");
+                System.err.println("배경 이미지 로드 실패: startBackground.png 파일을 찾을 수 없습니다.");
             }
         } catch (Exception e) {
             System.err.println("배경 이미지 로드 중 예외 발생");
