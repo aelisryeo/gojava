@@ -45,6 +45,13 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
     private BufferedImage OBimage;
 
+    private GameLauncher launcher;
+
+    public OlaOla(GameLauncher launcher) {
+        this();
+        this.launcher = launcher;
+    }
+
     public OlaOla() {
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
         //setBackground(Color.BLACK);
@@ -173,6 +180,9 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         if (isGameOver) {
             if (loopTimer.isRunning()) {
                 loopTimer.stop();
+            }
+            if (launcher!=null) {
+                launcher.showGameOverPanel(score);
             }
             return;
         }

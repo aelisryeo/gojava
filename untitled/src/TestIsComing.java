@@ -44,6 +44,13 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
     private boolean isChaserFacingLeft = false; // 추격자 방향
     private BufferedImage TBimage;
 
+    private GameLauncher launcher;
+
+
+    public TestIsComing(GameLauncher launcher) {
+        this();
+        this.launcher = launcher;
+    }
     public TestIsComing() {
 
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
@@ -141,6 +148,10 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         if (isGameOver) {
             if (loopTimer.isRunning()) {
                 loopTimer.stop();
+            }
+
+            if (launcher != null) {
+                launcher.showGameOverPanel(score);
             }
             return;
         }
@@ -332,11 +343,14 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         g.drawString("시험기간이 쫓아온다", 400, 40);
 
         // 4. 게임 오버 메시지
+        /*
         if (isGameOver) {
             g.setColor(Color.RED);
             g.setFont(new Font("SansSerif", Font.BOLD, 40));
             g.drawString("GAME OVER", GAME_WIDTH / 2 - 120, GAME_HEIGHT / 2);
         }
+
+         */
     }
 
     // 캐릭터 그리기 헬퍼 (좌우 반전 포함)
