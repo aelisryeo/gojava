@@ -1,6 +1,8 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -41,9 +43,11 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
     private int mushroomMinigameProgress;
     private final int MUSHROOM_GOAL = 10;
 
+    private BufferedImage OBimage;
+
     public OlaOla() {
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
-        setBackground(Color.BLACK);
+        //setBackground(Color.BLACK);
 
         // 키 입력 리스너 설정
         setFocusable(true);
@@ -62,6 +66,18 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 PLAYER_Y_POSITION,
                 "character.png"
         );
+
+        try {
+            // [수정 제안]
+            OBimage = ImageIO.read(getClass().getResourceAsStream("olaolaBackground.png"));
+
+            if (OBimage == null) {
+                System.err.println("배경 이미지 로드 실패: olaolaBackground.png 파일을 찾을 수 없습니다.");
+            }
+        } catch (Exception e) {
+            System.err.println("배경 이미지 로드 중 예외 발생");
+            e.printStackTrace();
+        }
 
         // 초기 계단 생성
         initializeStairs();
@@ -404,6 +420,18 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+
+        if (OBimage != null) {
+            // 패널 크기(GAME_WIDTH, GAME_HEIGHT)에 맞춰 이미지를 늘려 그립니다.
+            g.drawImage(
+                    OBimage,
+                    0,
+                    0,
+                    GAME_WIDTH,
+                    GAME_HEIGHT,
+                    this
+            );
+        }
 
         //남은 시간 바
         if (!isGameOver) {
