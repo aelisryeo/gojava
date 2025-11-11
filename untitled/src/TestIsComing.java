@@ -69,18 +69,18 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         player = new Character(
                 (GAME_WIDTH / 2) - 32,
                 PLAYER_Y_POSITION,
-                "character.png"
+                "image/character.png"
         );
 
         chaser = new Character(
                 player.getX() + CHASER_OFFSET_X,
                 player.getY() + 150, // 플레이어보다 아래
-                "chaser.png"
+                "image/chaser.png"
         );
 
         try {
             // [수정 제안]
-            TBimage = ImageIO.read(getClass().getResourceAsStream("testBackground.png"));
+            TBimage = ImageIO.read(getClass().getResourceAsStream("image/testBackground.png"));
 
             if (TBimage == null) {
                 System.err.println("배경 이미지 로드 실패: testBackground.png 파일을 찾을 수 없습니다.");

@@ -1,10 +1,7 @@
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
-import java.nio.Buffer;
 
 public class GameOverPanel extends JPanel{
     private BufferedImage GOBimage;
@@ -14,7 +11,7 @@ public class GameOverPanel extends JPanel{
 
         try {
             // [수정 제안]
-            GOBimage = ImageIO.read(getClass().getResourceAsStream("gameoverBackground.png"));
+            GOBimage = ImageIO.read(getClass().getResourceAsStream("image/gameoverBackground.png"));
 
             if (GOBimage == null) {
                 System.err.println("배경 이미지 로드 실패: gameoverBackground.png 파일을 찾을 수 없습니다.");

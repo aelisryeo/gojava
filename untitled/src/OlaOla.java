@@ -71,12 +71,12 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         player = new Character(
                 (GAME_WIDTH / 2) - 32,
                 PLAYER_Y_POSITION,
-                "character.png"
+                "image/character.png"
         );
 
         try {
             // [수정 제안]
-            OBimage = ImageIO.read(getClass().getResourceAsStream("olaolaBackground.png"));
+            OBimage = ImageIO.read(getClass().getResourceAsStream("image/olaolaBackground.png"));
 
             if (OBimage == null) {
                 System.err.println("배경 이미지 로드 실패: olaolaBackground.png 파일을 찾을 수 없습니다.");
