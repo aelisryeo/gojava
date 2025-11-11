@@ -95,6 +95,8 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
     private void initializeStairs() {
         int currentX = player.getX() - (STAIR_WIDTH / 2) + (player.getWidth() / 2);
         int currentY = GAME_HEIGHT - 40;
+//저걸로 처음계딴은 오른쪽 고정이 되어야하는데 왜안ㄴ되는건지몲띿머ㅔ데
+        //아니 근데 isTurn도 안먹는거같음 내가
 
         stairs.add(new StairInfo(currentX, currentY, STAIR_WIDTH, STAIR_HEIGHT, false, false, ObstacleType.NONE, ItemType.NONE));
 
@@ -142,8 +144,9 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         ItemType newItem = ItemType.NONE;
 
 
+//이렇게감쌋는데 시밸 자꾸 끝부분에 장애물나옴
 
-        if (!isTurn) {
+        if (!cannotGoStraight) {
             if (random.nextDouble() < 0.50) { //TODO 이것도 좀...,. 로직을 바꿔야겟어
 
                 boolean canSpawnStudent = (totalStudentSpawnCount < 5);
@@ -168,9 +171,11 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
             }
         }
-
-        stairs.add(new StairInfo(newX, newY, STAIR_WIDTH, STAIR_HEIGHT, nextIsLeft, isTurn, newObstacle, newItem));
-
+        if(cannotGoStraight) {
+            stairs.add(new StairInfo(newX, newY, STAIR_WIDTH, STAIR_HEIGHT, nextIsLeft, isTurn, ObstacleType.NONE, newItem));
+        } else {
+            stairs.add(new StairInfo(newX, newY, STAIR_WIDTH, STAIR_HEIGHT, nextIsLeft, isTurn, newObstacle, newItem));
+        }
         if (stairs.size() > INITIAL_STAIR_COUNT + 10) {
             stairs.remove(0);
         }
@@ -204,12 +209,14 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         StairInfo nnextStair = stairs.get(2);
 
         if (nnextStair.isLeftDirection != nextStair.isLeftDirection) {
+            currentStair.turnHere = true;
             requiresDirectionChange = true;
             updateDirectionKey();
         } else {
             requiresDirectionChange = false;
+            currentStair.turnHere = false;
         }
-
+//isTurn말고 requiresDirectionChange 이거써보셈
         int moveDistance = STAIR_WIDTH;
         int nextPlayerX;
         if (isPlayerFacingLeft) {

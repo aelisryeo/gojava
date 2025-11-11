@@ -6,6 +6,7 @@ public class StairInfo {
     public boolean isTurnPoint;
     public ObstacleType obstacle;
     public ItemType item;
+    public boolean turnHere;
 
 
     public StairInfo(int x, int y, int width, int height, boolean isLeft, boolean isTurn, ObstacleType obstacle, ItemType item) {
