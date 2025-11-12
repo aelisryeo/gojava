@@ -64,7 +64,7 @@ public class GameLauncher {
                 launchFrame.revalidate();
                 launchFrame.repaint();
             }
-        }
+        } //게임오버패널만들면서 launcher도 수정함
         public void showGameOverPanel(int finalScore) {
             launchFrame.getContentPane().removeAll();
 

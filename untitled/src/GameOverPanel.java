@@ -2,7 +2,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-
+//게임 오버 패널
 public class GameOverPanel extends JPanel{
     private BufferedImage GOBimage;
     private GameLauncher launcher;
@@ -17,16 +17,16 @@ public class GameOverPanel extends JPanel{
                 System.err.println("배경 이미지 로드 실패: gameoverBackground.png 파일을 찾을 수 없습니다.");
             }
         } catch (Exception e) {
-            System.err.println("배경 이미지 로드 중 예외 발생");
+            System.err.println("배경 이미지 로드 중 예외 발생.");
             e.printStackTrace();
         }
 
         setPreferredSize(new Dimension(800, 600));
         setLayout(new BorderLayout());
-        setBackground(Color.BLACK);
+        //setBackground(Color.BLACK);
 
         JLabel messageLabel = new JLabel("GAME OVER", SwingConstants.CENTER);
-        messageLabel.setFont(new Font("Arial", Font.PLAIN, 30));
+        messageLabel.setFont(new Font("Arial", Font.BOLD, 40));
         messageLabel.setForeground(Color.RED);
 
         JLabel scoreLabel = new JLabel("Final Score: "+finalScore, SwingConstants.CENTER);
@@ -52,11 +52,12 @@ public class GameOverPanel extends JPanel{
         JButton exitButton = new JButton("Exit Game");
         exitButton.setFont(new Font("Arial", Font.BOLD, 20));
         exitButton.addActionListener(e -> {
-            // ⭐ 프로그램 종료 ⭐
+            // ⭐ 프로그램 종료!! ⭐
             System.exit(0);
         });
         buttonPanel.add(restartButton);
         buttonPanel.add(exitButton);
+        //버튼추가
 
         add(infoPanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
@@ -69,4 +70,5 @@ public class GameOverPanel extends JPanel{
             g.drawImage(GOBimage, 0, 0, getWidth(), getHeight(), this);
         }
     }
+    //끝
 }

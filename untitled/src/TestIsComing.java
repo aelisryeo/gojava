@@ -50,7 +50,7 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
     public TestIsComing(GameLauncher launcher) {
         this();
         this.launcher = launcher;
-    }
+    } //ㅊㄱ
     public TestIsComing() {
 
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));

@@ -50,7 +50,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
     public OlaOla(GameLauncher launcher) {
         this();
         this.launcher = launcher;
-    }
+    } //이것도추가
 
     public OlaOla() {
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
