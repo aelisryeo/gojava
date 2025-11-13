@@ -52,7 +52,6 @@ public class GameOverPanel extends JPanel{
         JButton exitButton = new JButton("Exit Game");
         exitButton.setFont(new Font("Arial", Font.BOLD, 20));
         exitButton.addActionListener(e -> {
-            // ⭐ 프로그램 종료!! ⭐
             System.exit(0);
         });
         buttonPanel.add(restartButton);

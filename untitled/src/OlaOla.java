@@ -95,10 +95,21 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
     private void initializeStairs() {
         int currentX = player.getX() - (STAIR_WIDTH / 2) + (player.getWidth() / 2);
         int currentY = GAME_HEIGHT - 40;
-//저걸로 처음계딴은 오른쪽 고정이 되어야하는데 왜안ㄴ되는건지몲띿머ㅔ데
-        //아니 근데 isTurn도 안먹는거같음 내가
 
         stairs.add(new StairInfo(currentX, currentY, STAIR_WIDTH, STAIR_HEIGHT, false, false, ObstacleType.NONE, ItemType.NONE));
+
+        // ⭐ 2. 다음 3개 계단을 오른쪽으로 강제 직진 생성 (핵심 수정) ⭐
+        for (int i = 0; i < 1; i++) {
+            StairInfo lastStair = stairs.get(stairs.size() - 1);
+
+            int newY = lastStair.bounds.y - STAIR_GAP;
+
+            // ⭐ X 좌표는 이전 계단보다 STAIR_WIDTH 만큼 오른쪽으로 이동하도록 고정 ⭐
+            int newX = lastStair.bounds.x + STAIR_WIDTH;
+
+            // isLeftDirection=false (오른쪽으로), isTurn=false (꺾임 요구 없음)
+            stairs.add(new StairInfo(newX, newY, STAIR_WIDTH, STAIR_HEIGHT, false, false, ObstacleType.NONE, ItemType.NONE));
+        }
 
         for (int i = 0; i < INITIAL_STAIR_COUNT + 5; i++) {
             generateNewStair();
@@ -113,22 +124,56 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
         int expectedX = lastStair.isLeftDirection ? lastStair.bounds.x - STAIR_WIDTH : lastStair.bounds.x + STAIR_WIDTH;
 
-        boolean cannotGoStraight = (expectedX < 0) || (expectedX + STAIR_WIDTH > GAME_WIDTH);
-        boolean isTurn = cannotGoStraight || (random.nextDouble() < 0.4);
+        //boolean cannotGoStraight = (expectedX <= 50) || (expectedX + STAIR_WIDTH > GAME_WIDTH);
+        //boolean isTurn = cannotGoStraight || (random.nextDouble() < 0.4);
+        //boolean isTurnPoint = (random.nextDouble() < 0.4);
+
+        boolean willHitLeft = (expectedX <= 50);
+        boolean willHitRight = (expectedX + STAIR_WIDTH >= GAME_WIDTH - 50);
+        boolean randomTurn = (random.nextDouble() < 0.4);
+
+        boolean isTurnPoint = willHitLeft||willHitRight||randomTurn;
 
         int newX;
         boolean nextIsLeft = lastStair.isLeftDirection;
 
+        if(isTurnPoint) {
+            int targetLeftX = lastStair.bounds.x - STAIR_WIDTH;
+            int targetRightX = lastStair.bounds.x + STAIR_WIDTH;
+
+            if (willHitLeft) {
+                nextIsLeft = false;
+                //newX = lastStair.bounds.x + STAIR_WIDTH;
+            } else if (willHitRight) {
+                nextIsLeft = true;
+                //newX = lastStair.bounds.x - STAIR_WIDTH;
+            } else {
+                //newX = expectedX;
+                nextIsLeft = random.nextBoolean();
+            }
+            newX = nextIsLeft ? targetLeftX : targetRightX;
+        } else {
+            // 4. 직진 계단 (isTurnPoint = false가 보장됨)
+            newX = expectedX;
+            nextIsLeft = lastStair.isLeftDirection; // 방향 유지
+        }
+
+
+
+        /*
         if (isTurn) {
             int targetLeftX = lastStair.bounds.x - STAIR_WIDTH;
             int targetRightX = lastStair.bounds.x + STAIR_WIDTH;
 
             if (targetLeftX <= 50) {
                 nextIsLeft = false;
+                //newX = targetRightX;
             } else if (targetRightX + STAIR_WIDTH >= GAME_WIDTH - 50) {
                 nextIsLeft = true;
+                //newX = targetLeftX;
             } else {
                 nextIsLeft = random.nextBoolean();
+                //newX = nextIsLeft ? targetLeftX : targetRightX;
             }
             newX = nextIsLeft ? targetLeftX : targetRightX;
 
@@ -137,16 +182,17 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             nextIsLeft = lastStair.isLeftDirection;
         }
 
-        if (newX < 0) newX = 50;
-        if (newX + STAIR_WIDTH > GAME_WIDTH) newX = GAME_WIDTH - STAIR_WIDTH - 50;
-
+        //if (newX < 0) newX = 50;
+        //if (newX + STAIR_WIDTH > GAME_WIDTH) newX = GAME_WIDTH - STAIR_WIDTH - 50;
+         */
         ObstacleType newObstacle = ObstacleType.NONE;
         ItemType newItem = ItemType.NONE;
 
 
 //이렇게감쌋는데 시밸 자꾸 끝부분에 장애물나옴
 
-        if (!cannotGoStraight) {
+        if (!isTurnPoint) {
+            System.out.println("!isTurn");
             if (random.nextDouble() < 0.50) { //TODO 이것도 좀...,. 로직을 바꿔야겟어
 
                 boolean canSpawnStudent = (totalStudentSpawnCount < 5);
@@ -171,11 +217,13 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
             }
         }
-        if(cannotGoStraight) {
-            stairs.add(new StairInfo(newX, newY, STAIR_WIDTH, STAIR_HEIGHT, nextIsLeft, isTurn, ObstacleType.NONE, newItem));
-        } else {
-            stairs.add(new StairInfo(newX, newY, STAIR_WIDTH, STAIR_HEIGHT, nextIsLeft, isTurn, newObstacle, newItem));
+        else {
+            System.out.println("방향전환해야되는계단임");
         }
+
+
+        stairs.add(new StairInfo(newX, newY, STAIR_WIDTH, STAIR_HEIGHT, nextIsLeft, isTurnPoint, newObstacle, newItem));
+
         if (stairs.size() > INITIAL_STAIR_COUNT + 10) {
             stairs.remove(0);
         }
@@ -216,7 +264,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             requiresDirectionChange = false;
             currentStair.turnHere = false;
         }
-//isTurn말고 requiresDirectionChange 이거써보셈
         int moveDistance = STAIR_WIDTH;
         int nextPlayerX;
         if (isPlayerFacingLeft) {
@@ -532,6 +579,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             g.setFont(new Font("SansSerif", Font.BOLD, 24));
             g.drawString("TURN KEY : [" + currentDirectionKey + "]", GAME_WIDTH - 200, 400);
         }
+
 
         if (currentState != GameState.CLIMBING) {
             g.setColor(new Color(0, 0, 0, 150)); // 반투명한 검은색 배경

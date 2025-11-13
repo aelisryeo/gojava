@@ -101,6 +101,19 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
         stairs.add(new StairInfo(currentX, currentY, STAIR_WIDTH, STAIR_HEIGHT, false, false, ObstacleType.NONE, ItemType.NONE));
 
+        // ⭐ 2. 다음 3개 계단을 오른쪽으로 강제 직진 생성 (핵심 수정) ⭐
+        for (int i = 0; i < 1; i++) {
+            StairInfo lastStair = stairs.get(stairs.size() - 1);
+
+            int newY = lastStair.bounds.y - STAIR_GAP;
+
+            // ⭐ X 좌표는 이전 계단보다 STAIR_WIDTH 만큼 오른쪽으로 이동하도록 고정 ⭐
+            int newX = lastStair.bounds.x + STAIR_WIDTH;
+
+            // isLeftDirection=false (오른쪽으로), isTurn=false (꺾임 요구 없음)
+            stairs.add(new StairInfo(newX, newY, STAIR_WIDTH, STAIR_HEIGHT, false, false, ObstacleType.NONE, ItemType.NONE));
+        }
+
         for (int i = 0; i < INITIAL_STAIR_COUNT + 5; i++) {
             generateNewStair();
         }
