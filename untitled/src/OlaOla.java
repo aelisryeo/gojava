@@ -469,14 +469,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             if (mushroomMinigameProgress >= MUSHROOM_GOAL) {
                 endMinigame(true);
             }
-        } else {
-            if (e.getKeyCode() != KeyEvent.VK_SHIFT &&
-                    e.getKeyCode() != KeyEvent.VK_CONTROL &&
-                    e.getKeyCode() != KeyEvent.VK_ALT &&
-                    e.getKeyCode() != KeyEvent.VK_META)
-            {
-                endMinigame(false);
-            }
         }
     }
 

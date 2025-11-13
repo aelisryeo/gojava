@@ -12,7 +12,7 @@ public interface GameConstants {
     int LIFE = 3;
 
     int GAME_TICK_MS = 16;
-    double INITIAL_STAIR_TIME = 1000.0;
+    double INITIAL_STAIR_TIME = 2000.0;
     double MIN_TIME_PER_STAIR = 500.0;
     double TIME_REDUCTION = 200.0;
     int DIFFICULTY = 20;
@@ -21,4 +21,7 @@ public interface GameConstants {
 
     String[] LEFT_HAND_KEYS = {"A", "S", "D", "F"};
     String[] RIGHT_HAND_KEYS = {"H", "J", "K", "L"};
+
+    static int[] STUDENT_SPAWN_SCORES = {50, 100, 150, 200, 250};
+    static final double BASE_OBSTACLE_SPAWN_CHANCE = 0.35;
 }
