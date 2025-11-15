@@ -418,12 +418,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             }
         } else if (java.lang.Character.isLetter(e.getKeyChar())) {
             studentMinigameInput += java.lang.Character.toUpperCase(e.getKeyChar());
-
-            if (studentMinigameInput.equals(studentMinigameWord)) {
-                endMinigame(true);
-            } else if (!studentMinigameWord.startsWith(studentMinigameInput)) {
-                endMinigame(false);
-            }
         }
     }
 
@@ -563,7 +557,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             g.setFont(new Font("SansSerif", Font.BOLD, 30));
 
             if (currentState == GameState.MINIGAME_STUDENT) {
-                g.drawString("입력하세요", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
+                g.drawString("입력하세요(입력 후 엔터)", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
                 g.setColor(Color.CYAN);
                 g.drawString("단어: " + studentMinigameWord, GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2);
                 g.setColor(Color.YELLOW);
