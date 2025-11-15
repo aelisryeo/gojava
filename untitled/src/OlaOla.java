@@ -178,6 +178,12 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             }
         }
 
+        if (isTurnPoint) {
+            if (!stairs.isEmpty()) {
+                StairInfo stairB_JustBefore = stairs.get(stairs.size() - 1);
+                stairB_JustBefore.obstacle = ObstacleType.NONE;
+            }
+        }
 
         stairs.add(new StairInfo(newX, newY, STAIR_WIDTH, STAIR_HEIGHT, nextIsLeft, isTurnPoint, newObstacle, newItem));
 
