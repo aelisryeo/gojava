@@ -27,6 +27,8 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
     private boolean requiresDirectionChange = false;
 
+    private ObstacleType pendingObstacle = ObstacleType.NONE;
+
     private boolean isPlayerFacingLeft = false;
     private int currentLife;
 
@@ -118,75 +120,89 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         StairInfo lastStair = stairs.get(stairs.size() - 1);
         int newY = lastStair.bounds.y - STAIR_GAP;
 
-        int expectedX = lastStair.isLeftDirection ? lastStair.bounds.x - STAIR_WIDTH : lastStair.bounds.x + STAIR_WIDTH;
+        int expectedX_C = lastStair.isLeftDirection ? lastStair.bounds.x - STAIR_WIDTH : lastStair.bounds.x + STAIR_WIDTH;
 
-        boolean willHitLeft = (expectedX <= 50);
-        boolean willHitRight = (expectedX + STAIR_WIDTH >= GAME_WIDTH - 50);
-        boolean randomTurn = (random.nextDouble() < 0.4);
+        boolean willHitLeft_C = (expectedX_C <= 50);
+        boolean willHitRight_C = (expectedX_C + STAIR_WIDTH >= GAME_WIDTH - 50);
+        boolean randomTurn_C = (random.nextDouble() < 0.4);
 
-        boolean isTurnPoint = willHitLeft||willHitRight||randomTurn;
+        boolean isTurnPoint_C = willHitLeft_C || willHitRight_C || randomTurn_C;
 
-        int newX;
-        boolean nextIsLeft = lastStair.isLeftDirection;
+        int newX_C;
+        boolean nextIsLeft_C = lastStair.isLeftDirection;
 
-        if(isTurnPoint) {
+        if (isTurnPoint_C) {
             int targetLeftX = lastStair.bounds.x - STAIR_WIDTH;
             int targetRightX = lastStair.bounds.x + STAIR_WIDTH;
 
-            if (willHitLeft) {
-                nextIsLeft = false;
-            } else if (willHitRight) {
-                nextIsLeft = true;
+            if (willHitLeft_C) {
+                nextIsLeft_C = false;
+            } else if (willHitRight_C) {
+                nextIsLeft_C = true;
             } else {
-                //newX = expectedX;
-                nextIsLeft = random.nextBoolean();
+                nextIsLeft_C = !lastStair.isLeftDirection;
             }
-            newX = nextIsLeft ? targetLeftX : targetRightX;
+
+            newX_C = nextIsLeft_C ? targetLeftX : targetRightX;
+
         } else {
-            newX = expectedX;
-            nextIsLeft = lastStair.isLeftDirection;
+            newX_C = expectedX_C;
         }
 
-        ObstacleType newObstacle = ObstacleType.NONE;
-        ItemType newItem = ItemType.NONE;
 
+        //새로운 장애물 생성 결정
+        if (pendingObstacle == ObstacleType.NONE) {
 
-        if (!isTurnPoint) {
-            System.out.println("!isTurn");
-            if (random.nextDouble() < 0.50) { //TODO 이것도 좀...,. 로직을 바꿔야겟어
+            // TODO: 점수 기반 학생 스폰 로직
+
+            if (random.nextDouble() < BASE_OBSTACLE_SPAWN_CHANCE) {
 
                 boolean canSpawnStudent = (totalStudentSpawnCount < 5);
 
                 ArrayList<ObstacleType> possibleObstacles = new ArrayList<>();
                 possibleObstacles.add(ObstacleType.PROFESSOR);
                 possibleObstacles.add(ObstacleType.MUSHROOM);
-
                 if (canSpawnStudent) {
                     possibleObstacles.add(ObstacleType.STUDENT);
                 }
 
                 if (!possibleObstacles.isEmpty()) {
                     int obstacleIndex = random.nextInt(possibleObstacles.size());
-                    newObstacle = possibleObstacles.get(obstacleIndex);
-                }
 
-                if (newObstacle == ObstacleType.STUDENT) {
+                    pendingObstacle = possibleObstacles.get(obstacleIndex);
+                    System.out.println(pendingObstacle + " 배치 대기");
+                }
+            }
+        }
+
+        // 다음 계단 검사
+        boolean isTurnPoint_B = lastStair.isTurnPoint;
+        boolean isSafeToSpawn = !isTurnPoint_B && !isTurnPoint_C;
+
+        if (pendingObstacle != ObstacleType.NONE) {
+
+            if (isSafeToSpawn) {
+                lastStair.obstacle = pendingObstacle;
+
+                if (pendingObstacle == ObstacleType.STUDENT) {
                     totalStudentSpawnCount++;
-                    System.out.println("학생  + totalStudentSpawnCount + 번째 ");
+                    System.out.println("학생 " + totalStudentSpawnCount + "번째 배치");
+                } else {
+                    System.out.println(pendingObstacle + " 배치");
                 }
 
+                pendingObstacle = ObstacleType.NONE;
+
+            } else {
+                System.out.println(pendingObstacle + " 배치 미룸");
             }
         }
 
-        if (isTurnPoint) {
-            if (!stairs.isEmpty()) {
-                StairInfo stairB_JustBefore = stairs.get(stairs.size() - 1);
-                stairB_JustBefore.obstacle = ObstacleType.NONE;
-            }
-        }
+        //turn 이후 계단
+        stairs.add(new StairInfo(newX_C, newY, STAIR_WIDTH, STAIR_HEIGHT, nextIsLeft_C, isTurnPoint_C, ObstacleType.NONE, ItemType.NONE));
 
-        stairs.add(new StairInfo(newX, newY, STAIR_WIDTH, STAIR_HEIGHT, nextIsLeft, isTurnPoint, newObstacle, newItem));
 
+        // 리스트 관리 (기존 로직)
         if (stairs.size() > INITIAL_STAIR_COUNT + 10) {
             stairs.remove(0);
         }
@@ -280,8 +296,9 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         System.out.println(obstacle + " 장애물");
 
         if (obstacle == ObstacleType.PROFESSOR) {
-            score = Math.max(0, score - 10); //TODO 점수 깎는 수치를 1에서 10 사이 랜덤으로 해도 될듯... 생명도 하나 깎고...
-            //TODO 이거 점프로 스킵할수잇게ㄱㄱ
+            double dvalue = Math.random();
+            score -= (int)(dvalue * 10 + 1);
+            currentLife -= 1;
             System.out.println("과제를 왜 이렇게 해왓나 학생... 자네는 감점이네 (현재: " + score + "점)");
             return;
         }
@@ -443,7 +460,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         super.paintComponent(g);
 
         if (OBimage != null) {
-            // 패널 크기(GAME_WIDTH, GAME_HEIGHT)에 맞춰 이미지를 늘려 그립니다.
             g.drawImage(
                     OBimage,
                     0,
