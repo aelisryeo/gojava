@@ -10,7 +10,7 @@ import java.util.Random;
 public class OlaOla extends JPanel implements ActionListener, KeyListener, GameConstants {
 
     private Character player;
-    private List<StairInfo> stairs = new ArrayList<>(); // 분리된 StairInfo 클래스 사용
+    private List<StairInfo> stairs = new ArrayList<>();
 
     private boolean isGameOver = false;
     private int score = 0;
@@ -378,7 +378,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             return;
         }
 
-        switch (currentState) { //TODO...
+        switch (currentState) {
             case CLIMBING:
                 handleClimbingInput(e);
                 break;
@@ -573,7 +573,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             g.setFont(new Font("SansSerif", Font.BOLD, 30));
 
             if (currentState == GameState.MINIGAME_STUDENT) {
-                g.drawString("입력하세요(입력 후 엔터)", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
+                g.drawString("입력하세요 (입력 후 엔터)", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
                 g.setColor(Color.CYAN);
                 g.drawString("단어: " + studentMinigameWord, GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2);
                 g.setColor(Color.YELLOW);
