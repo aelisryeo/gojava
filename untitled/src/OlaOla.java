@@ -282,14 +282,14 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
 
         if (obstacle == ObstacleType.STUDENT) {
-            minigameTimer = 5000.0;
-            maxMinigameTime = 5000.0;
+            minigameTimer = 3000.0;
+            maxMinigameTime = 3000.0;
             currentState = GameState.MINIGAME_STUDENT;
             studentMinigameWord = "TYPE";
             studentMinigameInput = "";
         } else if (obstacle == ObstacleType.MUSHROOM) {
-            minigameTimer = 3000.0;
-            maxMinigameTime = 3000.0;
+            minigameTimer = 2000.0;
+            maxMinigameTime = 2000.0;
             currentState = GameState.MINIGAME_MUSHROOM;
             mushroomMinigameKeys = new String[2];
             String key1 = LEFT_HAND_KEYS[random.nextInt(LEFT_HAND_KEYS.length)];
@@ -456,7 +456,18 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
         //남은 시간 바
         if (!isGameOver) {
-            double timePercent = Math.max(0, remainTime / timePerStair);
+            double currentTimerValue;
+            double maxTimerValue;
+
+            if (currentState == GameState.CLIMBING) {
+                currentTimerValue = remainTime;
+                maxTimerValue = timePerStair;
+            } else {
+                currentTimerValue = minigameTimer;
+                maxTimerValue = maxMinigameTime;
+            }
+
+            double timePercent = Math.max(0, currentTimerValue / maxTimerValue);
 
             if (timePercent > 0.5) {
                 g.setColor(Color.green);
@@ -540,13 +551,12 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
         if (currentState != GameState.CLIMBING) {
             g.setColor(new Color(0, 0, 0, 150)); // 반투명한 검은색 배경
-            g.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            g.fillRect(0, 15, GAME_WIDTH, GAME_HEIGHT);
 
             g.setColor(Color.WHITE);
             g.setFont(new Font("SansSerif", Font.BOLD, 30));
 
             if (currentState == GameState.MINIGAME_STUDENT) {
-                drawMinigameTimerBar(g);
                 g.drawString("입력하세요", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
                 g.setColor(Color.CYAN);
                 g.drawString("단어: " + studentMinigameWord, GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2);
@@ -554,7 +564,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 g.drawString("입력: " + studentMinigameInput, GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 + 50);
 
             } else if (currentState == GameState.MINIGAME_MUSHROOM) {
-                drawMinigameTimerBar(g);
 
                 g.drawString("버섯을 물리치세요", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
                 g.setColor(Color.GREEN);
@@ -582,28 +591,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         g.drawString("Life: " + currentLife, GAME_WIDTH - 80, 40);
     }
 
-    private void drawMinigameTimerBar(Graphics g) {
-        double timePercent = Math.max(0, minigameTimer / maxMinigameTime);
-        int timerBarWidth = (int) (300 * timePercent);
-
-        int barX = GAME_WIDTH / 2 - 150;
-        int barY = GAME_HEIGHT / 2 + 100;
-        int barFullWidth = 300;
-        int barHeight = 20;
-
-        g.setColor(Color.GRAY);
-        g.fillRect(barX, barY, barFullWidth, barHeight);
-
-        if (timePercent > 0.5) {
-            g.setColor(Color.GREEN);
-        } else if (timePercent > 0.25) {
-            g.setColor(Color.YELLOW);
-        } else {
-            g.setColor(Color.RED);
-        }
-
-        g.fillRect(barX, barY, timerBarWidth, barHeight);
-    }
 
     // Timer 이벤트 처리 (게임 루프)
     @Override
