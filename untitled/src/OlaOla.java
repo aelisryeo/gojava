@@ -9,7 +9,6 @@ import java.util.Random;
 
 public class OlaOla extends JPanel implements ActionListener, KeyListener, GameConstants {
 
-    // 게임 객체
     private Character player;
     private List<StairInfo> stairs = new ArrayList<>(); // 분리된 StairInfo 클래스 사용
 
@@ -19,6 +18,9 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
     private Timer loopTimer;
     private double timePerStair;
     private double remainTime;
+
+    private double minigameTimer;
+    private double maxMinigameTime;
 
     private String currentDirectionKey;
     private Random random = new Random();
@@ -54,9 +56,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
     public OlaOla() {
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
-        //setBackground(Color.BLACK);
 
-        // 키 입력 리스너 설정
         setFocusable(true);
         addKeyListener(this);
 
@@ -75,7 +75,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         );
 
         try {
-            // [수정 제안]
             OBimage = ImageIO.read(getClass().getResourceAsStream("image/olaolaBackground.png"));
 
             if (OBimage == null) {
@@ -98,16 +97,13 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
         stairs.add(new StairInfo(currentX, currentY, STAIR_WIDTH, STAIR_HEIGHT, false, false, ObstacleType.NONE, ItemType.NONE));
 
-        // ⭐ 2. 다음 3개 계단을 오른쪽으로 강제 직진 생성 (핵심 수정) ⭐
         for (int i = 0; i < 1; i++) {
             StairInfo lastStair = stairs.get(stairs.size() - 1);
 
             int newY = lastStair.bounds.y - STAIR_GAP;
 
-            // ⭐ X 좌표는 이전 계단보다 STAIR_WIDTH 만큼 오른쪽으로 이동하도록 고정 ⭐
             int newX = lastStair.bounds.x + STAIR_WIDTH;
 
-            // isLeftDirection=false (오른쪽으로), isTurn=false (꺾임 요구 없음)
             stairs.add(new StairInfo(newX, newY, STAIR_WIDTH, STAIR_HEIGHT, false, false, ObstacleType.NONE, ItemType.NONE));
         }
 
@@ -124,10 +120,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
         int expectedX = lastStair.isLeftDirection ? lastStair.bounds.x - STAIR_WIDTH : lastStair.bounds.x + STAIR_WIDTH;
 
-        //boolean cannotGoStraight = (expectedX <= 50) || (expectedX + STAIR_WIDTH > GAME_WIDTH);
-        //boolean isTurn = cannotGoStraight || (random.nextDouble() < 0.4);
-        //boolean isTurnPoint = (random.nextDouble() < 0.4);
-
         boolean willHitLeft = (expectedX <= 50);
         boolean willHitRight = (expectedX + STAIR_WIDTH >= GAME_WIDTH - 50);
         boolean randomTurn = (random.nextDouble() < 0.4);
@@ -143,53 +135,21 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
             if (willHitLeft) {
                 nextIsLeft = false;
-                //newX = lastStair.bounds.x + STAIR_WIDTH;
             } else if (willHitRight) {
                 nextIsLeft = true;
-                //newX = lastStair.bounds.x - STAIR_WIDTH;
             } else {
                 //newX = expectedX;
                 nextIsLeft = random.nextBoolean();
             }
             newX = nextIsLeft ? targetLeftX : targetRightX;
         } else {
-            // 4. 직진 계단 (isTurnPoint = false가 보장됨)
-            newX = expectedX;
-            nextIsLeft = lastStair.isLeftDirection; // 방향 유지
-        }
-
-
-
-        /*
-        if (isTurn) {
-            int targetLeftX = lastStair.bounds.x - STAIR_WIDTH;
-            int targetRightX = lastStair.bounds.x + STAIR_WIDTH;
-
-            if (targetLeftX <= 50) {
-                nextIsLeft = false;
-                //newX = targetRightX;
-            } else if (targetRightX + STAIR_WIDTH >= GAME_WIDTH - 50) {
-                nextIsLeft = true;
-                //newX = targetLeftX;
-            } else {
-                nextIsLeft = random.nextBoolean();
-                //newX = nextIsLeft ? targetLeftX : targetRightX;
-            }
-            newX = nextIsLeft ? targetLeftX : targetRightX;
-
-        } else {
             newX = expectedX;
             nextIsLeft = lastStair.isLeftDirection;
         }
 
-        //if (newX < 0) newX = 50;
-        //if (newX + STAIR_WIDTH > GAME_WIDTH) newX = GAME_WIDTH - STAIR_WIDTH - 50;
-         */
         ObstacleType newObstacle = ObstacleType.NONE;
         ItemType newItem = ItemType.NONE;
 
-
-//이렇게감쌋는데 시밸 자꾸 끝부분에 장애물나옴
 
         if (!isTurnPoint) {
             System.out.println("!isTurn");
@@ -217,9 +177,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
             }
         }
-        else {
-            System.out.println("방향전환해야되는계단임");
-        }
 
 
         stairs.add(new StairInfo(newX, newY, STAIR_WIDTH, STAIR_HEIGHT, nextIsLeft, isTurnPoint, newObstacle, newItem));
@@ -240,15 +197,22 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             return;
         }
 
-        remainTime -= GAME_TICK_MS;
-
-        if (remainTime <= 0) {
-            isGameOver = true;
-            System.out.println("Game Over");
+        if (currentState == GameState.CLIMBING) {
+            remainTime -= GAME_TICK_MS;
+            if (remainTime <= 0) {
+                isGameOver = true;
+                System.out.println("Game Over");
+            }
+        } else {
+            minigameTimer -= GAME_TICK_MS;
+            if (minigameTimer <= 0) {
+                System.out.println("미니게임 실패, 생명 -1");
+                endMinigame(false);
+            }
         }
     }
 
-    // --- 7. 캐릭터 이동 및 계단 체크 로직 ---
+
     private void playerClimb() {
         if (isGameOver || stairs.size() < 2) return;
 
@@ -316,13 +280,16 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             return;
         }
 
-        loopTimer.stop();
 
-        if (obstacle == ObstacleType.STUDENT) { //TODO 시간제한 만들기 그리고 뭔가 안됨(시밸) 그리고 특정점수마다 뜨도록 바꾸기
+        if (obstacle == ObstacleType.STUDENT) {
+            minigameTimer = 5000.0;
+            maxMinigameTime = 5000.0;
             currentState = GameState.MINIGAME_STUDENT;
             studentMinigameWord = "TYPE";
             studentMinigameInput = "";
         } else if (obstacle == ObstacleType.MUSHROOM) {
+            minigameTimer = 3000.0;
+            maxMinigameTime = 3000.0;
             currentState = GameState.MINIGAME_MUSHROOM;
             mushroomMinigameKeys = new String[2];
             String key1 = LEFT_HAND_KEYS[random.nextInt(LEFT_HAND_KEYS.length)];
@@ -344,14 +311,12 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         if (success) {
             System.out.println("미니게임 성공");
             currentState = GameState.CLIMBING;
-            loopTimer.start();
         } else {
             System.out.println("미니게임 실패");
             handleWrongKey();
 
             if (!isGameOver) {
                 currentState = GameState.CLIMBING;
-                loopTimer.start();
             }
         }
     }
@@ -581,6 +546,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             g.setFont(new Font("SansSerif", Font.BOLD, 30));
 
             if (currentState == GameState.MINIGAME_STUDENT) {
+                drawMinigameTimerBar(g);
                 g.drawString("입력하세요", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
                 g.setColor(Color.CYAN);
                 g.drawString("단어: " + studentMinigameWord, GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2);
@@ -588,12 +554,13 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 g.drawString("입력: " + studentMinigameInput, GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 + 50);
 
             } else if (currentState == GameState.MINIGAME_MUSHROOM) {
+                drawMinigameTimerBar(g);
+
                 g.drawString("버섯을 물리치세요", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
                 g.setColor(Color.GREEN);
                 g.drawString("[" + mushroomMinigameKeys[0] + "] 와 [" + mushroomMinigameKeys[1] + "] 연타",
                         GAME_WIDTH / 2 - 250, GAME_HEIGHT / 2);
 
-                //TODO 아오 시밸 이것도 시간추가해야됨
                 g.setColor(Color.GRAY);
                 g.fillRect(GAME_WIDTH / 2 - 150, GAME_HEIGHT / 2 + 50, 300, 30);
                 g.setColor(Color.YELLOW);
@@ -613,6 +580,29 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         g.setColor(Color.RED);
         g.setFont(new Font("SansSerif", Font.BOLD, 18));
         g.drawString("Life: " + currentLife, GAME_WIDTH - 80, 40);
+    }
+
+    private void drawMinigameTimerBar(Graphics g) {
+        double timePercent = Math.max(0, minigameTimer / maxMinigameTime);
+        int timerBarWidth = (int) (300 * timePercent);
+
+        int barX = GAME_WIDTH / 2 - 150;
+        int barY = GAME_HEIGHT / 2 + 100;
+        int barFullWidth = 300;
+        int barHeight = 20;
+
+        g.setColor(Color.GRAY);
+        g.fillRect(barX, barY, barFullWidth, barHeight);
+
+        if (timePercent > 0.5) {
+            g.setColor(Color.GREEN);
+        } else if (timePercent > 0.25) {
+            g.setColor(Color.YELLOW);
+        } else {
+            g.setColor(Color.RED);
+        }
+
+        g.fillRect(barX, barY, timerBarWidth, barHeight);
     }
 
     // Timer 이벤트 처리 (게임 루프)
