@@ -28,6 +28,9 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
     private boolean requiresDirectionChange = false;
 
     private ObstacleType pendingObstacle = ObstacleType.NONE;
+    private int testItemCount = 0;
+    private double clockBuffTimer = 0;
+    private double testBuffeTimer = 0;
 
     private boolean isPlayerFacingLeft = false;
     private int currentLife;
@@ -142,45 +145,34 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             } else {
                 nextIsLeft_C = !lastStair.isLeftDirection;
             }
-
             newX_C = nextIsLeft_C ? targetLeftX : targetRightX;
 
         } else {
             newX_C = expectedX_C;
         }
 
-
-        //새로운 장애물 생성 결정
+        // 장애물 생성 결정
         if (pendingObstacle == ObstacleType.NONE) {
-
-            // TODO: 점수 기반 학생 스폰 로직
-
             if (random.nextDouble() < BASE_OBSTACLE_SPAWN_CHANCE) {
-
-                boolean canSpawnStudent = (totalStudentSpawnCount < 5);
-
                 ArrayList<ObstacleType> possibleObstacles = new ArrayList<>();
                 possibleObstacles.add(ObstacleType.PROFESSOR);
                 possibleObstacles.add(ObstacleType.MUSHROOM);
-                if (canSpawnStudent) {
+                if (totalStudentSpawnCount < 5) {
                     possibleObstacles.add(ObstacleType.STUDENT);
                 }
 
                 if (!possibleObstacles.isEmpty()) {
                     int obstacleIndex = random.nextInt(possibleObstacles.size());
-
                     pendingObstacle = possibleObstacles.get(obstacleIndex);
-                    System.out.println(pendingObstacle + " 배치 대기");
                 }
             }
         }
 
-        // 다음 계단 검사
+        //장애물 배치 시도
         boolean isTurnPoint_B = lastStair.isTurnPoint;
         boolean isSafeToSpawn = !isTurnPoint_B && !isTurnPoint_C;
 
         if (pendingObstacle != ObstacleType.NONE) {
-
             if (isSafeToSpawn) {
                 lastStair.obstacle = pendingObstacle;
 
@@ -190,19 +182,30 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 } else {
                     System.out.println(pendingObstacle + " 배치");
                 }
-
                 pendingObstacle = ObstacleType.NONE;
-
             } else {
-                System.out.println(pendingObstacle + " 배치 미룸");
+                System.out.println(pendingObstacle + " 배치 유예");
             }
         }
 
-        //turn 이후 계단
+        if (lastStair.obstacle == ObstacleType.NONE) {
+
+            final double ITEM_SPAWN_CHANCE = 0.25;
+            if (random.nextDouble() < ITEM_SPAWN_CHANCE) {
+
+                ItemType[] possibleItems = {ItemType.CLOCK, ItemType.HEART, ItemType.TEST};
+                int itemIndex = random.nextInt(possibleItems.length);
+                ItemType newItem = possibleItems[itemIndex];
+
+                lastStair.item = newItem;
+            }
+        }
+
+        //다음 계단 추가
         stairs.add(new StairInfo(newX_C, newY, STAIR_WIDTH, STAIR_HEIGHT, nextIsLeft_C, isTurnPoint_C, ObstacleType.NONE, ItemType.NONE));
 
 
-        // 리스트 관리 (기존 로직)
+        // 리스트 관리
         if (stairs.size() > INITIAL_STAIR_COUNT + 10) {
             stairs.remove(0);
         }
@@ -220,7 +223,19 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         }
 
         if (currentState == GameState.CLIMBING) {
-            remainTime -= GAME_TICK_MS;
+            if (clockBuffTimer > 0) {
+                clockBuffTimer -= GAME_TICK_MS;
+            }
+            if (testBuffeTimer > 0) {
+                testBuffeTimer -= GAME_TICK_MS;
+            }
+
+            double currentTickSpeed = GAME_TICK_MS;
+            if (clockBuffTimer > 0) {
+                currentTickSpeed /= 2.0;
+            }
+            remainTime -= currentTickSpeed;
+
             if (remainTime <= 0) {
                 isGameOver = true;
                 System.out.println("Game Over");
@@ -280,6 +295,9 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         if (stairJustLandedOn.obstacle != ObstacleType.NONE) {
             triggerObstacle(stairJustLandedOn.obstacle);
             stairJustLandedOn.obstacle = ObstacleType.NONE;
+        } else if (stairJustLandedOn.item != ItemType.NONE) {
+            triggerItem(stairJustLandedOn.item);
+            stairJustLandedOn.item = ItemType.NONE;
         }
 
         for (StairInfo stair : stairs) {
@@ -287,9 +305,40 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         }
 
         generateNewStair();
-        score++;
+
+        int pointsEarned = 1;
+        if (testBuffeTimer > 0) {
+            pointsEarned = 2;
+            System.out.println("점수 두 배");
+        }
+        score += pointsEarned;
+
         updateDifficulty();
         this.remainTime = this.timePerStair;
+    }
+
+    private void triggerItem(ItemType item) {
+        System.out.println(item + "아이템");
+
+        if (item == ItemType.CLOCK) {
+            clockBuffTimer = 5000.0;
+            System.out.println("시계 획득");
+        } else if (item == ItemType.HEART) {
+            int newLife = currentLife + 1;
+            currentLife = Math.min(newLife, LIFE);
+            System.out.println("생명 추가");
+        } else if (item == ItemType.TEST) {
+            testItemCount++;
+            System.out.println("시험지" + testItemCount + "번째 획득");
+
+            if (testItemCount >= 5) {
+                System.out.println("점수 두 배");
+                testBuffeTimer = 5000.0;
+
+                testItemCount = 0;
+                System.out.println("시험지 초기화");
+            }
+        }
     }
 
     private void triggerObstacle(ObstacleType obstacle) {
@@ -523,9 +572,24 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
                 g.setFont(new Font("SansSerif", Font.BOLD, 14));
                 g.drawString(obstacleText, stair.bounds.x + 5, stair.bounds.y + 15);
+            } else if (stair.item != ItemType.NONE) {
+                String itemText = "";
+                if (stair.item == ItemType.CLOCK) {
+                    g.setColor(Color.CYAN);
+                    itemText = "C";
+                } else if (stair.item == ItemType.HEART) {
+                    g.setColor(Color.PINK);
+                    itemText = "H";
+                } else if (stair.item == ItemType.TEST) {
+                    g.setColor(Color.GREEN);
+                    itemText = "T";
+                }
+
+                g.setFont(new Font("SansSerif", Font.BOLD, 14));
+                g.drawString(itemText, stair.bounds.x + 5, stair.bounds.y + 15);
+
             }
         }
-
         Graphics2D g2d = (Graphics2D)g.create();
         if (player.getImage() != null) {
             if (isPlayerFacingLeft) {
@@ -562,6 +626,31 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             g.setColor(Color.CYAN);
             g.setFont(new Font("SansSerif", Font.BOLD, 24));
             g.drawString("TURN KEY : [" + currentDirectionKey + "]", GAME_WIDTH - 200, 400);
+        }
+
+        int buffY_Position = 80;
+
+        if (clockBuffTimer > 0) {
+            g.setColor(Color.ORANGE);
+            g.setFont(new Font("SansSerif", Font.BOLD, 16));
+            String clockText = "Clock: " + clockBuffTimer;
+            g.drawString(clockText, 10, buffY_Position);
+            buffY_Position += 20;
+        }
+
+        if (testBuffeTimer > 0) {
+            g.setColor(Color.ORANGE);
+            g.setFont(new Font("SansSerif", Font.BOLD, 16));
+            String testText = "Test: " + testBuffeTimer;
+            g.drawString(testText, 10, buffY_Position);
+            buffY_Position += 20;
+        }
+
+        if (testItemCount > 0) {
+            g.setColor(Color.ORANGE);
+            g.setFont(new Font("SansSerif", Font.BOLD, 16));
+            String testText = "Test: " + testItemCount + "/5";
+            g.drawString(testText, 10, buffY_Position);
         }
 
 
