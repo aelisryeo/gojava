@@ -2,7 +2,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-//게임 오버 패널
+
 public class GameOverPanel extends JPanel{
     private BufferedImage GOBimage;
     private GameLauncher launcher;
@@ -10,11 +10,37 @@ public class GameOverPanel extends JPanel{
         this.launcher = launcher;
 
         try {
-            // [수정 제안]
-            GOBimage = ImageIO.read(getClass().getResourceAsStream("image/gameoverBackground.png"));
+            if(finalScore==0) {
+                GOBimage = ImageIO.read(getClass().getResourceAsStream("image/gameoverWorst.png"));
 
-            if (GOBimage == null) {
-                System.err.println("배경 이미지 로드 실패: gameoverBackground.png 파일을 찾을 수 없습니다.");
+                if (GOBimage == null) {
+                    System.err.println("배경 이미지 로드 실패: gameoverWorst.png 파일을 찾을 수 없습니다.");
+                }
+            }
+            else if(finalScore <= 20) {
+                GOBimage = ImageIO.read(getClass().getResourceAsStream("image/gameoverBad.png"));
+
+                if (GOBimage == null) {
+                    System.err.println("배경 이미지 로드 실패: gameoverBad.png 파일을 찾을 수 없습니다.");
+                }
+            } else if (finalScore <=50) {
+                GOBimage = ImageIO.read(getClass().getResourceAsStream("image/gameoverSoso.png"));
+
+                if (GOBimage == null) {
+                    System.err.println("배경 이미지 로드 실패: gameoverSoso.png 파일을 찾을 수 없습니다.");
+                }
+            } else if (finalScore <=100) {
+                GOBimage = ImageIO.read(getClass().getResourceAsStream("image/gameoverGood.png"));
+
+                if (GOBimage == null) {
+                    System.err.println("배경 이미지 로드 실패: gameoverGood.png 파일을 찾을 수 없습니다.");
+                }
+            } else {
+                GOBimage = ImageIO.read(getClass().getResourceAsStream("image/gameoverBest.png"));
+
+                if (GOBimage == null) {
+                    System.err.println("배경 이미지 로드 실패: gameoverBest.png 파일을 찾을 수 없습니다.");
+                }
             }
         } catch (Exception e) {
             System.err.println("배경 이미지 로드 중 예외 발생.");
@@ -31,7 +57,7 @@ public class GameOverPanel extends JPanel{
 
         JLabel scoreLabel = new JLabel("Final Score: "+finalScore, SwingConstants.CENTER);
         scoreLabel.setFont(new Font("Arial", Font.PLAIN, 30));
-        scoreLabel.setForeground(Color.WHITE);
+        scoreLabel.setForeground(Color.MAGENTA);
 
         JPanel infoPanel = new JPanel();
         infoPanel.setOpaque(false);
@@ -56,7 +82,6 @@ public class GameOverPanel extends JPanel{
         });
         buttonPanel.add(restartButton);
         buttonPanel.add(exitButton);
-        //버튼추가
 
         add(infoPanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
@@ -69,5 +94,4 @@ public class GameOverPanel extends JPanel{
             g.drawImage(GOBimage, 0, 0, getWidth(), getHeight(), this);
         }
     }
-    //끝
 }
