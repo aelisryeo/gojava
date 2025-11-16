@@ -52,6 +52,14 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
     private BufferedImage OBimage;
 
+    private BufferedImage imageProfessor;
+    private BufferedImage imageStudent;
+    private BufferedImage imageMushroom;
+
+    private BufferedImage imageTest;
+    private BufferedImage imageClock;
+    private BufferedImage imageHeart;
+
     private GameLauncher launcher;
 
     public OlaOla(GameLauncher launcher) {
@@ -78,6 +86,44 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 PLAYER_Y_POSITION,
                 "image/character.png"
         );
+        try {
+            imageProfessor = ImageIO.read(getClass().getResourceAsStream("image/professor.png"));
+        } catch (Exception e) {
+            System.err.println("교수 이미지 로드 실패!");
+            e.printStackTrace();
+        }
+        try {
+            imageStudent = ImageIO.read(getClass().getResourceAsStream("image/student.png"));
+        } catch (Exception e) {
+            System.err.println("학생 이미지 로드 실패!");
+            e.printStackTrace();
+        }
+        try {
+            imageMushroom = ImageIO.read(getClass().getResourceAsStream("/image/mushroom.png"));
+        } catch (Exception e) {
+            System.err.println("버섯 이미지 로드 실패!");
+            e.printStackTrace();
+        }
+
+        try {
+            imageTest = ImageIO.read(getClass().getResourceAsStream("image/test.png"));
+        } catch (Exception e) {
+            System.err.println("시험지 이미지 로드 실패!");
+            e.printStackTrace();
+        }
+        try {
+            imageClock = ImageIO.read(getClass().getResourceAsStream("image/clock.png"));
+        } catch (Exception e) {
+            System.err.println("시계 이미지 로드 실패!");
+            e.printStackTrace();
+        }
+        try {
+            imageHeart = ImageIO.read(getClass().getResourceAsStream("/image/heart.png"));
+        } catch (Exception e) {
+            System.err.println("하트 이미지 로드 실패!");
+            e.printStackTrace();
+        }
+
 
         try {
             OBimage = ImageIO.read(getClass().getResourceAsStream("image/olaolaBackground.png"));
@@ -89,6 +135,8 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             System.err.println("배경 이미지 로드 중 예외 발생");
             e.printStackTrace();
         }
+
+
 
         // 초기 계단 생성
         initializeStairs();
@@ -555,6 +603,8 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             }
             g.fillRect(stair.bounds.x, stair.bounds.y, stair.bounds.width, stair.bounds.height);
 
+            BufferedImage obstacleImage = null;
+            BufferedImage itemImage = null;
             if (stair.obstacle != ObstacleType.NONE) {
 
                 String obstacleText = "";
@@ -562,12 +612,34 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 if (stair.obstacle == ObstacleType.PROFESSOR) {
                     g.setColor(Color.RED);
                     obstacleText = "P"; // Professor
+                    obstacleImage = imageProfessor;
                 } else if (stair.obstacle == ObstacleType.STUDENT) {
                     g.setColor(Color.RED);
                     obstacleText = "S"; // Student
+                    obstacleImage = imageStudent;
                 } else if (stair.obstacle == ObstacleType.MUSHROOM) {
                     g.setColor(Color.RED);
                     obstacleText = "M"; // Mushroom
+                    obstacleImage = imageMushroom;
+                }
+
+                if (obstacleImage!= null) {
+                    int obstacleWidth = STAIR_WIDTH / 2; // 계단 너비의 절반 크기로 예시
+                    int obstacleHeight = 40; // 고정된 높이 예시
+
+                    // X 위치: 계단 중앙에 오도록 조정
+                    int obstacleX = stair.bounds.x + (STAIR_WIDTH / 2) - (obstacleWidth / 2);
+                    // Y 위치: 계단 상단에 딱 붙도록 조정
+                    int obstacleY = stair.bounds.y - obstacleHeight;
+
+                    g.drawImage(
+                            obstacleImage,
+                            obstacleX,
+                            obstacleY,
+                            obstacleWidth,
+                            obstacleHeight,
+                            this
+                    );
                 }
 
                 g.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -577,16 +649,37 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 if (stair.item == ItemType.CLOCK) {
                     g.setColor(Color.CYAN);
                     itemText = "C";
+                    itemImage = imageClock;
                 } else if (stair.item == ItemType.HEART) {
                     g.setColor(Color.PINK);
                     itemText = "H";
+                    itemImage = imageHeart;
                 } else if (stair.item == ItemType.TEST) {
                     g.setColor(Color.GREEN);
                     itemText = "T";
+                    itemImage = imageTest;
                 }
 
                 g.setFont(new Font("SansSerif", Font.BOLD, 14));
                 g.drawString(itemText, stair.bounds.x + 5, stair.bounds.y + 15);
+                if (itemImage!= null) {
+                    int itemWidth = STAIR_WIDTH / 2; // 계단 너비의 절반 크기로 예시
+                    int itemHeight = 40; // 고정된 높이 예시
+
+                    // X 위치: 계단 중앙에 오도록 조정
+                    int itemX = stair.bounds.x + (STAIR_WIDTH / 2) - (itemWidth / 2);
+                    // Y 위치: 계단 상단에 딱 붙도록 조정
+                    int itemY = stair.bounds.y - itemHeight;
+
+                    g.drawImage(
+                            itemImage,
+                            itemX,
+                            itemY,
+                            itemWidth,
+                            itemHeight,
+                            this
+                    );
+                }
 
             }
         }
