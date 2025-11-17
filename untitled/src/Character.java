@@ -30,7 +30,7 @@ public class Character {
 
             // 주의: 파일 경로는 "/파일명.확장자" 형태로 사용합니다.
 
-            // /character.png 는 src 폴더 아래의 character.png 파일을 의미합니다.
+            // /character1.png 는 src 폴더 아래의 character1.png 파일을 의미합니다.
             characterImage = ImageIO.read(getClass().getResourceAsStream("/" + filePath));
 
             if (characterImage == null) {

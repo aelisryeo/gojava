@@ -47,11 +47,11 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
     private GameLauncher launcher;
 
 
-    public TestIsComing(GameLauncher launcher) {
-        this();
+    public TestIsComing(GameLauncher launcher, String characterImagePath) {
+        //this();
         this.launcher = launcher;
-    } //ㅊㄱ
-    public TestIsComing() {
+    //}
+    //public TestIsComing() {
 
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
         //setBackground(Color.BLACK);
@@ -69,7 +69,7 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         player = new Character(
                 (GAME_WIDTH / 2) - 32,
                 PLAYER_Y_POSITION,
-                "image/character.png"
+                characterImagePath
         );
 
         chaser = new Character(

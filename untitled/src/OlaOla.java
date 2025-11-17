@@ -61,13 +61,14 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
     private BufferedImage imageHeart;
 
     private GameLauncher launcher;
+    private Character playerImage;
 
-    public OlaOla(GameLauncher launcher) {
-        this();
+    public OlaOla(GameLauncher launcher, String characterImagePath) {
+        //this();
         this.launcher = launcher;
-    } //이것도추가
+    //}
 
-    public OlaOla() {
+    //public OlaOla() {
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
 
         setFocusable(true);
@@ -84,7 +85,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         player = new Character(
                 (GAME_WIDTH / 2) - 32,
                 PLAYER_Y_POSITION,
-                "image/character.png"
+                characterImagePath
         );
         try {
             imageProfessor = ImageIO.read(getClass().getResourceAsStream("image/professor.png"));
