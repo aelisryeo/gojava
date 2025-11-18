@@ -36,7 +36,7 @@ public class CharacterSelectPanel extends JPanel {
         add(characterContainer, BorderLayout.CENTER);
 
         // 선택 완료 버튼
-        JButton backButton = new JButton("선택 완료 / 돌아가기");
+        JButton backButton = new JButton("선택 완료");
         backButton.setFont(new Font("SansSerif", Font.BOLD, 30));
         backButton.setPreferredSize(new Dimension(350, 80));
 

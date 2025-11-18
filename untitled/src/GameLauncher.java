@@ -9,17 +9,15 @@ public class GameLauncher {
 
     private JFrame launchFrame;
 
-    private CharacterSelect selectedCharacter = CharacterSelect.CHARACTER_ONE; // 기본값
+    private CharacterSelect selectedCharacter = CharacterSelect.CHARACTER_수룡; // 기본값
 
-    public enum GamePanelState { GAME_START, GAME_PLAY, GAME_OVER }
+    //public enum GamePanelState { GAME_START, GAME_PLAY, GAME_OVER }
 
     public enum GameMode {CLASSIC_MODE, TEST_MODE}
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             new GameLauncher().initialize();
-
-
 
         });
     }
@@ -40,39 +38,11 @@ public class GameLauncher {
             GameMode selectedMode = GameMode.valueOf(e.getActionCommand());
             // ⭐️ 저장된 selectedCharacter를 사용하여 게임을 시작합니다.
             showGamePanel(selectedMode, this.selectedCharacter);
-            /*
-            String command = e.getActionCommand();
-            String[] parts = command.split("_");
-            if (parts.length>=3) {
-                try {
-                    GameMode selectedMode = GameMode.valueOf(parts[0] + "_" + parts[1]);
-                    CharacterSelect selectedCharacter = CharacterSelect.valueOf(parts[2] + "_" + parts[3]);
-
-                    showGamePanel(selectedMode, selectedCharacter);
-                } catch (IllegalArgumentException ex) {
-                    System.err.println("잘못된 ActionCommand 형식 또는 enum 값: " + command);
-                    ex.printStackTrace();
-                }
-            } else {
-                // StartPanel의 버튼 리스너를 변경했기 때문에, 이 부분이 실행되면 안 됩니다.
-                System.err.println("잘못된 ActionCommand 형식: " + command);
-            }
-
-             */
         };
         // 2. 캐릭터 선택 리스너 정의: StartPanel에서 캐릭터 선택 버튼을 눌렀을 때 실행됨.
         ActionListener characterSelectAction = e -> {
             showCharacterSelectPanel();
         };
-
-        /*
-        ActionListener startAction = e -> {
-            String command = e.getActionCommand();
-            GameMode selectedMode = GameMode.valueOf(command);
-            showGamePanel(selectedMode);
-        };
-         */
-
 
             StartPanel startPanel = new StartPanel(startAction, characterSelectAction, this.selectedCharacter);
             launchFrame.add(startPanel);

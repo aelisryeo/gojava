@@ -48,13 +48,10 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
 
     public TestIsComing(GameLauncher launcher, String characterImagePath) {
-        //this();
         this.launcher = launcher;
-    //}
-    //public TestIsComing() {
 
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
-        //setBackground(Color.BLACK);
+        setBackground(Color.BLACK);
         setFocusable(true);
         addKeyListener(this);
 
@@ -355,15 +352,6 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         g.setFont(new Font("SansSerif", Font.BOLD, 24));
         g.drawString("시험기간이 쫓아온다", 400, 40);
 
-        // 4. 게임 오버 메시지
-        /*
-        if (isGameOver) {
-            g.setColor(Color.RED);
-            g.setFont(new Font("SansSerif", Font.BOLD, 40));
-            g.drawString("GAME OVER", GAME_WIDTH / 2 - 120, GAME_HEIGHT / 2);
-        }
-
-         */
     }
 
     // 캐릭터 그리기 헬퍼 (좌우 반전 포함)
