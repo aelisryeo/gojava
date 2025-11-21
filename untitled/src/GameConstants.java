@@ -1,21 +1,26 @@
 public interface GameConstants {
     // 게임 상수
-    int GAME_WIDTH = 800;
-    int GAME_HEIGHT = 600;
+    int GAME_WIDTH = 900;
+    int GAME_HEIGHT = 700;
 
-    int STAIR_WIDTH = 100;
-    int STAIR_HEIGHT = 20;
-    int STAIR_GAP = 50;
+    int STAIR_WIDTH = 120;
+    int STAIR_HEIGHT = 30;
+    int STAIR_GAP = 70;
     int INITIAL_STAIR_COUNT = 10;
 
-    int PLAYER_Y_POSITION = GAME_HEIGHT - 100;
+    int PLAYER_Y_POSITION = GAME_HEIGHT - 150;
     int LIFE = 3;
+
+    int PLAYER_HEIGHT = 120;
+    int PLAYER_WIDTH = 120;
 
     int GAME_TICK_MS = 16;
     double INITIAL_STAIR_TIME = 2000.0;
     double MIN_TIME_PER_STAIR = 500.0;
     double TIME_REDUCTION = 200.0;
     int DIFFICULTY = 20;
+
+    int ITEM_HEIGHT = (STAIR_WIDTH / 4) * 3;
 
     String[] DIRECTION_KEYS = {"A", "S", "D", "F", "H", "J", "K", "L"};
 

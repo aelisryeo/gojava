@@ -11,7 +11,7 @@ import java.util.Random;
 
 public class TestIsComing extends JPanel implements ActionListener, KeyListener, GameConstants {
 
-    private final int PLAYER_Y_POSITION = GAME_HEIGHT - 300;
+    private final int PLAYER_Y_POSITION = GAME_HEIGHT - 350;
 
     private Character player;
     private int playerStairIndex = 0;
@@ -48,8 +48,7 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
     private BufferedImage[] charAnim;
     private int currentCharFrame = 0;
-    private static final int playerWidth = 80;
-    private static final int playerHeight = 80;
+
     private int playerX = 368;
     private Timer playerTimer;
     private static final int PLAYER_ANIMATION_FRAMES = 3;
@@ -124,8 +123,8 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
 
     private void initializeStairs() {
-        int currentX = playerX - (STAIR_WIDTH / 2) + (playerWidth / 2);
-        int currentY =  PLAYER_Y_POSITION + playerHeight - STAIR_HEIGHT;
+        int currentX = playerX - (STAIR_WIDTH / 2) + (PLAYER_WIDTH / 2);
+        int currentY =  PLAYER_Y_POSITION + PLAYER_HEIGHT - STAIR_HEIGHT;
 
         stairs.add(new StairInfo(currentX, currentY, STAIR_WIDTH, STAIR_HEIGHT, false, false, ObstacleType.NONE, ItemType.NONE));
 
@@ -244,7 +243,7 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         }
 
         // 이동 확정: 다음 계단(targetStair)의 중앙에 스냅
-        int targetX = targetStair.bounds.x + (STAIR_WIDTH / 2) - (playerWidth / 2);
+        int targetX = targetStair.bounds.x + (STAIR_WIDTH / 2) - (PLAYER_WIDTH / 2);
         playerX = targetX;
         playerStairIndex++; // 플레이어 인덱스 증가
 
@@ -391,9 +390,7 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
             currentCharImage = charAnim[currentCharFrame];
         }
 
-        final int PLAYER_Y = PLAYER_Y_POSITION;
-        final int PLAYER_WIDTH = 80;
-        final int PLAYER_HEIGHT = 80;
+        final int PLAYER_Y = PLAYER_Y_POSITION - 20;
 
         if (currentCharImage != null) {
             if (isPlayerFacingLeft) {

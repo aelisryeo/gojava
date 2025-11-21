@@ -714,20 +714,18 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 }
 
                 if (obstacleImage!= null) {
-                    int obstacleWidth = STAIR_WIDTH / 2; // 계단 너비의 절반 크기로 예시
-                    int obstacleHeight = 40; // 고정된 높이 예시
 
                     // X 위치: 계단 중앙에 오도록 조정
-                    int obstacleX = stair.bounds.x + (STAIR_WIDTH / 2) - (obstacleWidth / 2);
+                    int obstacleX = stair.bounds.x + (STAIR_WIDTH / 2) - (ITEM_HEIGHT / 2);
                     // Y 위치: 계단 상단에 딱 붙도록 조정
-                    int obstacleY = stair.bounds.y - obstacleHeight;
+                    int obstacleY = stair.bounds.y - ITEM_HEIGHT;
 
                     g.drawImage(
                             obstacleImage,
                             obstacleX,
                             obstacleY,
-                            obstacleWidth,
-                            obstacleHeight,
+                            ITEM_HEIGHT,
+                            ITEM_HEIGHT,
                             this
                     );
                 }
@@ -753,20 +751,18 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 g.setFont(new Font("SansSerif", Font.BOLD, 14));
                 g.drawString(itemText, stair.bounds.x + 5, stair.bounds.y + 15);
                 if (itemImage!= null) {
-                    int itemWidth = STAIR_WIDTH / 2; // 계단 너비의 절반 크기로 예시
-                    int itemHeight = 40; // 고정된 높이 예시
 
                     // X 위치: 계단 중앙에 오도록 조정
-                    int itemX = stair.bounds.x + (STAIR_WIDTH / 2) - (itemWidth / 2);
+                    int itemX = stair.bounds.x + (STAIR_WIDTH / 2) - (ITEM_HEIGHT / 2);
                     // Y 위치: 계단 상단에 딱 붙도록 조정
-                    int itemY = stair.bounds.y - itemHeight;
+                    int itemY = stair.bounds.y - ITEM_HEIGHT;
 
                     g.drawImage(
                             itemImage,
                             itemX,
                             itemY,
-                            itemWidth,
-                            itemHeight,
+                            ITEM_HEIGHT,
+                            ITEM_HEIGHT,
                             this
                     );
                 }
@@ -783,9 +779,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         // player 객체가 없다면, 기존 위치 상수를 사용해야 합니다.
         // 기존 Character 초기화 위치를 상수로 가정합니다.
         //final int PLAYER_X = (GAME_WIDTH / 2) - 32;
-        final int PLAYER_Y = PLAYER_Y_POSITION;     // 이 상수는 OlaOla에 정의되어 있어야 함
-        final int PLAYER_WIDTH = 80;
-        final int PLAYER_HEIGHT = 80;
+        final int PLAYER_Y = PLAYER_Y_POSITION;
 
         if (currentCharImage != null) {
             if (isPlayerFacingLeft) { // isPlayerFacingLeft는 기존 필드
@@ -921,13 +915,15 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             }
         }
 
-
+/*
         // 4. 게임 오버 메시지
         if (isGameOver) {
             g.setColor(Color.RED);
             g.setFont(new Font("SansSerif", Font.BOLD, 40));
             g.drawString("GAME OVER", GAME_WIDTH / 2 - 120, GAME_HEIGHT / 2);
         }
+
+ */
 
         g.setColor(Color.RED);
         g.setFont(new Font("SansSerif", Font.BOLD, 18));
