@@ -68,10 +68,12 @@ public class StartPanel extends JPanel {
         centerContainer.add(Box.createVerticalGlue()); // 하단 여백
         try {
 
-            String charPath = currentCharacter.getImagePath();
-            characterImage = ImageIO.read(getClass().getResourceAsStream(charPath));
+            String[] charPath = currentCharacter.getImagePath();
+            if (charPath != null && charPath.length > 0) {
+                String displayPath = charPath[0];
+                characterImage = ImageIO.read(getClass().getResourceAsStream(displayPath));
+            }
             bImage = ImageIO.read(getClass().getResourceAsStream("image/startBackground.png"));
-
             if (bImage == null) {
                 System.err.println("배경 이미지 로드 실패: startBackground.png 파일을 찾을 수 없습니다.");
             }

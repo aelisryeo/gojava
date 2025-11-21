@@ -35,11 +35,16 @@ public class GameOverPanel extends JPanel{
                 if (GOBimage == null) {
                     System.err.println("배경 이미지 로드 실패: gameoverGood.png 파일을 찾을 수 없습니다.");
                 }
-            } else {
+            } else if (finalScore <= 150){
                 GOBimage = ImageIO.read(getClass().getResourceAsStream("image/gameoverBest.png"));
 
                 if (GOBimage == null) {
                     System.err.println("배경 이미지 로드 실패: gameoverBest.png 파일을 찾을 수 없습니다.");
+                }
+            } else {
+                GOBimage = ImageIO.read(getClass().getResourceAsStream("image/gameoverGyosoo.png"));
+                if (GOBimage == null) {
+                    System.err.println("배경 이미지 로드 실패: gameoverGyosoo.png 파일을 찾을 수 없읍니다.");
                 }
             }
         } catch (Exception e) {

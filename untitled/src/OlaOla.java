@@ -3,9 +3,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import javax.sound.sampled.*;
 
 public class OlaOla extends JPanel implements ActionListener, KeyListener, GameConstants {
 
@@ -60,9 +62,26 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
     private BufferedImage imageClock;
     private BufferedImage imageHeart;
 
+    private BufferedImage[] hitMushrooms;
+    private int currentMushroomFrame = 0;
+    private Timer mushroomATimer;
+    private static final int MUSHROOM_ANIMATION_FRAMES = 3;
+    private static final int ANIMATION_DELAY_MS = 150;
+
+    private BufferedImage[] typing;
+    private int currentTypeFrame = 0;
+    private Timer typingTimer;
+    private static final int TYPE_ANIMATION_FRAMES = 2;
+
+    private BufferedImage[] charAnim;
+    private int currentCharFrame = 0;
+    private static final int playerWidth = 80;
+    private static final int playerHeight = 80;
+    private int playerX = 368;
+
     private GameLauncher launcher;
 
-    public OlaOla(GameLauncher launcher, String characterImagePath) {
+    public OlaOla(GameLauncher launcher, CharacterSelect selectedCharacter) {
         this.launcher = launcher;
 
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
@@ -77,12 +96,29 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
         loopTimer = new Timer(GAME_TICK_MS, this);
         loopTimer.start();
-
+/*
         player = new Character(
                 (GAME_WIDTH / 2) - 32,
                 PLAYER_Y_POSITION,
                 characterImagePath
         );
+
+ */
+        String[] paths = selectedCharacter.getImagePath();
+        charAnim = new BufferedImage[paths.length];
+        try {
+            for (int i = 0; i < paths.length; i++) {
+                // 경로가 "/image/" 형태라면 수정해야 합니다. (이전 문제 해결 시 사용했던 경로 사용)
+                charAnim[i] = ImageIO.read(getClass().getResourceAsStream(paths[i]));
+                if (charAnim[i] == null) {
+                    System.err.println("❌ 캐릭터 애니메이션 이미지 로드 실패: " + paths[i]);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("캐릭터 애니메이션 이미지 로드 중 예외 발생");
+            e.printStackTrace();
+        }
+
         try {
             imageProfessor = ImageIO.read(getClass().getResourceAsStream("image/professor.png"));
         } catch (Exception e) {
@@ -121,6 +157,37 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             e.printStackTrace();
         }
 
+        hitMushrooms = new BufferedImage[MUSHROOM_ANIMATION_FRAMES];
+        try {
+            for (int i = 0; i < MUSHROOM_ANIMATION_FRAMES; i++) {
+                String path = "mushroom/hitmushroom" + i + ".png";
+                hitMushrooms[i] = ImageIO.read(getClass().getResourceAsStream(path));
+                if (hitMushrooms[i] == null) {
+                    System.err.println("버섯 애니메이션 이미지 로드 실패 : " + path);
+                }
+            }
+        }catch (Exception e) {
+            System.err.println("버섯 애니메이션 이미지 로드 중 예외 발생");
+            e.printStackTrace();
+        }
+        mushroomATimer = new Timer(ANIMATION_DELAY_MS, this);
+        mushroomATimer.start();
+
+        typing = new BufferedImage[TYPE_ANIMATION_FRAMES];
+        try {
+            for (int i = 0; i < TYPE_ANIMATION_FRAMES; i++) {
+                String path = "type/typing" + i + ".png";
+                typing[i] = ImageIO.read(getClass().getResourceAsStream(path));
+                if (typing[i] == null) {
+                    System.err.println("typing이미지로드실패 : " + path);
+                }
+            }
+        }catch (Exception e) {
+            System.err.println("typing 애니메이션 이미지 로드 중 예외 발생");
+            e.printStackTrace();
+        }
+        typingTimer = new Timer(ANIMATION_DELAY_MS, this);
+        typingTimer.start();
 
         try {
             OBimage = ImageIO.read(getClass().getResourceAsStream("image/olaolaBackground.png"));
@@ -142,7 +209,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
 
     private void initializeStairs() {
-        int currentX = player.getX() - (STAIR_WIDTH / 2) + (player.getWidth() / 2);
+        int currentX = playerX - (STAIR_WIDTH / 2) + (playerWidth / 2);
         int currentY = GAME_HEIGHT - 40;
 
         stairs.add(new StairInfo(currentX, currentY, STAIR_WIDTH, STAIR_HEIGHT, false, false, ObstacleType.NONE, ItemType.NONE));
@@ -313,12 +380,12 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         int moveDistance = STAIR_WIDTH;
         int nextPlayerX;
         if (isPlayerFacingLeft) {
-            nextPlayerX = player.getX() - moveDistance;
+            nextPlayerX = playerX - moveDistance;
         } else {
-            nextPlayerX = player.getX() + moveDistance;
+            nextPlayerX = playerX + moveDistance;
         }
 
-        int nextPlayerCenterX = nextPlayerX + (player.getWidth() / 2);
+        int nextPlayerCenterX = nextPlayerX + (playerWidth / 2);
         if (
                 nextPlayerCenterX < nextStair.bounds.x ||
                         nextPlayerCenterX > nextStair.bounds.x + nextStair.bounds.width
@@ -333,7 +400,8 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             return;
         }
 
-        player.setX(nextPlayerX);
+        //player.setX(nextPlayerX);
+        playerX = nextPlayerX;
         stairs.remove(0);
 
         StairInfo stairJustLandedOn = stairs.get(0);
@@ -360,10 +428,33 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
         updateDifficulty();
         this.remainTime = this.timePerStair;
+
+        playSound("climb");
+    }
+
+    private void playSound(String name) {
+        try {
+            java.net.URL soundURL = getClass().getResource("audio/"+name+".wav");
+
+            if (soundURL == null) {
+                System.err.println("❌ 사운드 파일 로드 실패: 경로를 확인하십시오.");
+                return;
+            }
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundURL);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioIn);
+
+            // 사운드를 한 번 재생합니다.
+            clip.start();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            System.err.println("사운드 재생 중 예외 발생: " + e.getMessage());
+            e.printStackTrace();
+            }
     }
 
     private void triggerItem(ItemType item) {
         System.out.println(item + "아이템");
+        playSound("item");
 
         if (item == ItemType.CLOCK) {
             clockBuffTimer = 5000.0;
@@ -529,6 +620,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             }
         } else if (java.lang.Character.isLetter(e.getKeyChar())) {
             studentMinigameInput += java.lang.Character.toUpperCase(e.getKeyChar());
+            playSound("type");
         }
     }
 
@@ -541,6 +633,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             if (pressedKey.equals(mushroomMinigameKeys[expectedKeyIndex])) {
                 mushroomMinigameProgress++;
                 System.out.println("연타 " + mushroomMinigameProgress);
+                playSound("mushroom");
             }
             if (mushroomMinigameProgress >= MUSHROOM_GOAL) {
                 endMinigame(true);
@@ -681,30 +774,44 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             }
         }
         Graphics2D g2d = (Graphics2D)g.create();
-        if (player.getImage() != null) {
-            if (isPlayerFacingLeft) {
+
+        BufferedImage currentCharImage = null;
+        if (charAnim!=null && charAnim.length > 0) {
+            currentCharImage = charAnim[currentCharFrame];
+        }
+
+        // player 객체가 없다면, 기존 위치 상수를 사용해야 합니다.
+        // 기존 Character 초기화 위치를 상수로 가정합니다.
+        //final int PLAYER_X = (GAME_WIDTH / 2) - 32;
+        final int PLAYER_Y = PLAYER_Y_POSITION;     // 이 상수는 OlaOla에 정의되어 있어야 함
+        final int PLAYER_WIDTH = 80;
+        final int PLAYER_HEIGHT = 80;
+
+        if (currentCharImage != null) {
+            if (isPlayerFacingLeft) { // isPlayerFacingLeft는 기존 필드
                 g2d.scale(-1, 1);
-                int flippedX = -(player.getX() + player.getWidth());
+                int flippedX = -(playerX + PLAYER_WIDTH);
                 g2d.drawImage(
-                        player.getImage(),
+                        currentCharImage,
                         flippedX,
-                        player.getY(),
-                        player.getWidth(),
-                        player.getHeight(),
+                        PLAYER_Y,
+                        PLAYER_WIDTH,
+                        PLAYER_HEIGHT,
                         this
                 );
             } else {
                 g2d.drawImage(
-                        player.getImage(),
-                        player.getX(),
-                        player.getY(),
-                        player.getWidth(),
-                        player.getHeight(),
+                        currentCharImage,
+                        playerX,
+                        PLAYER_Y,
+                        PLAYER_WIDTH,
+                        PLAYER_HEIGHT,
                         this
                 );
             }
         }
-        g2d.dispose();
+
+        g2d.dispose(); // g2d 사용 후 반납
 
         // 3. 점수 및 정보 표시
         g.setColor(Color.YELLOW);
@@ -758,9 +865,30 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 g.setColor(Color.YELLOW);
                 g.drawString("입력: " + studentMinigameInput, GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 + 50);
 
+                BufferedImage currentImage = typing[currentTypeFrame];
+                if (currentImage != null) {
+                    int x = GAME_WIDTH / 2 + 120;
+                    int y = GAME_HEIGHT / 2 - 50;
+                    int width = 150;
+                    int height = 150;
+
+                    g.drawImage(
+                            currentImage,
+                            x,
+                            y,
+                            width,
+                            height,
+                            this
+                    );
+                }
+                else {
+                    System.out.println("typing이미지가null입니다...");
+                }
+
             } else if (currentState == GameState.MINIGAME_MUSHROOM) {
 
                 g.drawString("버섯을 물리치세요", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
+
                 g.setColor(Color.GREEN);
                 g.drawString("[" + mushroomMinigameKeys[0] + "] 와 [" + mushroomMinigameKeys[1] + "] 연타",
                         GAME_WIDTH / 2 - 250, GAME_HEIGHT / 2);
@@ -770,6 +898,26 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 g.setColor(Color.YELLOW);
                 int progressWidth = (int) (300.0 * (mushroomMinigameProgress / (double)MUSHROOM_GOAL));
                 g.fillRect(GAME_WIDTH / 2 - 150, GAME_HEIGHT / 2 + 50, progressWidth, 30);
+
+                BufferedImage currentImage = hitMushrooms[currentMushroomFrame];
+                if (currentImage != null) {
+                    int x = GAME_WIDTH / 2 + 120;
+                    int y = GAME_HEIGHT / 2 - 50;
+                    int width = 150;
+                    int height = 150;
+
+                    g.drawImage(
+                            currentImage,
+                            x,
+                            y,
+                            width,
+                            height,
+                            this
+                    );
+                }
+                else {
+                    System.out.println("버섯이미지가null입니다...");
+                }
             }
         }
 
@@ -790,8 +938,24 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
     // Timer 이벤트 처리 (게임 루프)
     @Override
     public void actionPerformed(ActionEvent e) {
-        updateGameLogic();
-        repaint();
+        if (e.getSource() == loopTimer) {
+            updateGameLogic();
+            repaint();
+        }
+        else if (e.getSource() == mushroomATimer) {
+            currentMushroomFrame = (currentMushroomFrame + 1) % MUSHROOM_ANIMATION_FRAMES;
+
+            // 2. ⭐️ 캐릭터 프레임 변경
+            if (charAnim != null && charAnim.length > 0) {
+                currentCharFrame = (currentCharFrame + 1) % charAnim.length;
+            }
+
+            repaint();
+        }
+        else if (e.getSource() == typingTimer) {
+            currentTypeFrame = (currentTypeFrame + 1) % TYPE_ANIMATION_FRAMES;
+            repaint();
+        }
     }
 
     // 사용하지 않는 KeyListener 메소드

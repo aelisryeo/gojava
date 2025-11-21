@@ -1,8 +1,10 @@
 import javax.imageio.ImageIO;
+import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -44,10 +46,19 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
     private boolean isChaserFacingLeft = false; // 추격자 방향
     private BufferedImage TBimage;
 
+    private BufferedImage[] charAnim;
+    private int currentCharFrame = 0;
+    private static final int playerWidth = 80;
+    private static final int playerHeight = 80;
+    private int playerX = 368;
+    private Timer playerTimer;
+    private static final int PLAYER_ANIMATION_FRAMES = 3;
+    private static final int ANIMATION_DELAY_MS = 150;
+
     private GameLauncher launcher;
 
 
-    public TestIsComing(GameLauncher launcher, String characterImagePath) {
+    public TestIsComing(GameLauncher launcher, CharacterSelect selectedCharacter) {
         this.launcher = launcher;
 
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
@@ -63,17 +74,37 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         loopTimer = new Timer(GAME_TICK_MS, this);
         loopTimer.start();
 
+        /*
         player = new Character(
                 (GAME_WIDTH / 2) - 32,
                 PLAYER_Y_POSITION,
                 characterImagePath
         );
 
+         */
+
         chaser = new Character(
-                player.getX() + CHASER_OFFSET_X,
-                player.getY() + 150, // 플레이어보다 아래
+                playerX + CHASER_OFFSET_X,
+                PLAYER_Y_POSITION + 150, // 플레이어보다 아래
                 "image/chaser.png"
         );
+
+        String[] paths = selectedCharacter.getImagePath();
+        charAnim = new BufferedImage[paths.length];
+        try {
+            for (int i = 0; i < paths.length; i++) {
+                // 경로가 "/image/" 형태라면 수정해야 합니다. (이전 문제 해결 시 사용했던 경로 사용)
+                charAnim[i] = ImageIO.read(getClass().getResourceAsStream(paths[i]));
+                if (charAnim[i] == null) {
+                    System.err.println("❌ 캐릭터 애니메이션 이미지 로드 실패: " + paths[i]);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("캐릭터 애니메이션 이미지 로드 중 예외 발생");
+            e.printStackTrace();
+        }
+        playerTimer = new Timer(ANIMATION_DELAY_MS, this);
+        playerTimer.start();
 
         try {
             // [수정 제안]
@@ -93,8 +124,8 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
 
     private void initializeStairs() {
-        int currentX = player.getX() - (STAIR_WIDTH / 2) + (player.getWidth() / 2);
-        int currentY =  player.getY() + player.getHeight() - STAIR_HEIGHT;
+        int currentX = playerX - (STAIR_WIDTH / 2) + (playerWidth / 2);
+        int currentY =  PLAYER_Y_POSITION + playerHeight - STAIR_HEIGHT;
 
         stairs.add(new StairInfo(currentX, currentY, STAIR_WIDTH, STAIR_HEIGHT, false, false, ObstacleType.NONE, ItemType.NONE));
 
@@ -213,8 +244,8 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         }
 
         // 이동 확정: 다음 계단(targetStair)의 중앙에 스냅
-        int targetX = targetStair.bounds.x + (STAIR_WIDTH / 2) - (player.getWidth() / 2);
-        player.setX(targetX);
+        int targetX = targetStair.bounds.x + (STAIR_WIDTH / 2) - (playerWidth / 2);
+        playerX = targetX;
         playerStairIndex++; // 플레이어 인덱스 증가
 
         // 방향 전환 키 요구 체크
@@ -244,6 +275,27 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         score++;
         updateDifficulty();
         this.remainTime = this.timePerStair;
+        playSound("climb");
+    }
+
+    private void playSound(String name) {
+        try {
+            java.net.URL soundURL = getClass().getResource("audio/"+name+".wav");
+
+            if (soundURL == null) {
+                System.err.println("❌ 사운드 파일 로드 실패: 경로를 확인하십시오.");
+                return;
+            }
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundURL);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioIn);
+
+            // 사운드를 한 번 재생합니다.
+            clip.start();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            System.err.println("사운드 재생 중 예외 발생: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
 
@@ -332,8 +384,44 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
             g.fillRect(stair.bounds.x, stair.bounds.y, stair.bounds.width, stair.bounds.height);
         }
 
+        Graphics2D g2d = (Graphics2D)g.create();
+
+        BufferedImage currentCharImage = null;
+        if (charAnim!=null && charAnim.length > 0) {
+            currentCharImage = charAnim[currentCharFrame];
+        }
+
+        final int PLAYER_Y = PLAYER_Y_POSITION;
+        final int PLAYER_WIDTH = 80;
+        final int PLAYER_HEIGHT = 80;
+
+        if (currentCharImage != null) {
+            if (isPlayerFacingLeft) {
+                g2d.scale(-1, 1);
+                int flippedX = -(playerX + PLAYER_WIDTH);
+                g2d.drawImage(
+                        currentCharImage,
+                        flippedX,
+                        PLAYER_Y,
+                        PLAYER_WIDTH,
+                        PLAYER_HEIGHT,
+                        this
+                );
+            } else {
+                g2d.drawImage(
+                        currentCharImage,
+                        playerX,
+                        PLAYER_Y,
+                        PLAYER_WIDTH,
+                        PLAYER_HEIGHT,
+                        this
+                );
+            }
+        }
+
+        g2d.dispose(); // g2d 사용 후 반납
+
         drawCharacter(g, chaser, chaser.getX(), chaser.getY(), isChaserFacingLeft);
-        drawCharacter(g, player, player.getX(), player.getY(), isPlayerFacingLeft);
 
         // 3. 점수 및 정보 표시
         g.setColor(Color.YELLOW);
@@ -373,8 +461,20 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
     // Timer 이벤트 처리 (게임 루프)
     @Override
     public void actionPerformed(ActionEvent e) {
-        updateGameLogic();
-        repaint();
+        if (e.getSource() == loopTimer) {
+            updateGameLogic();
+            repaint();
+        }
+        if (e.getSource() == playerTimer) {
+            currentCharFrame = (currentCharFrame + 1) % PLAYER_ANIMATION_FRAMES;
+
+            // 2. ⭐️ 캐릭터 프레임 변경
+            if (charAnim != null && charAnim.length > 0) {
+                currentCharFrame = (currentCharFrame + 1) % charAnim.length;
+            }
+
+            repaint();
+        }
     }
 
     // 사용하지 않는 KeyListener 메소드

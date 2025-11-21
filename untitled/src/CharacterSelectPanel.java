@@ -69,20 +69,32 @@ public class CharacterSelectPanel extends JPanel {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setOpaque(false);
 
-        try {
-            BufferedImage img = ImageIO.read(getClass().getResourceAsStream(charOption.getImagePath()));
-            if (img != null) {
-                // 이미지를 JLabell Icon으로 변환하여 추가
-                JLabel imageLabel = new JLabel(new ImageIcon(img.getScaledInstance(128, 128, Image.SCALE_SMOOTH)));
-                imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-                panel.add(imageLabel);
+        String[] paths = charOption.getImagePath();
+        if (paths != null && paths.length > 0) {
+            String displayPath = paths[0];
+            try {
+                BufferedImage img = ImageIO.read(getClass().getResourceAsStream(displayPath));
+                if (img != null) {
+                    // 이미지를 JLabell Icon으로 변환하여 추가
+                    JLabel imageLabel = new JLabel(new ImageIcon(img.getScaledInstance(128, 128, Image.SCALE_SMOOTH)));
+                    imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                    panel.add(imageLabel);
+                }
+            } catch (IOException e) {
+                JLabel errorLabel = new JLabel("이미지 로드 실패");
+                errorLabel.setForeground(Color.RED);
+                errorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                panel.add(errorLabel);
             }
-        } catch (IOException e) {
-            JLabel errorLabel = new JLabel("이미지 로드 실패");
-            errorLabel.setForeground(Color.RED);
+        }
+        else {
+            // 경로 배열 자체가 비어있거나 null인 경우
+            JLabel errorLabel = new JLabel("경로 없음");
+            errorLabel.setForeground(Color.GRAY);
             errorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             panel.add(errorLabel);
         }
+
 
         JRadioButton radioButton = new JRadioButton(charOption.name().replace("CHARACTER_", ""));
         radioButton.setActionCommand(charOption.name()); // ActionCommand에 캐릭터 enum 이름 설정

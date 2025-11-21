@@ -83,12 +83,12 @@ public class GameLauncher {
             launchFrame.getContentPane().removeAll();
 
             JPanel playGamePanel = null;
-            String characterImagePath = selectedCharacter.getImagePath(); // 경로 추출
+            String[] characterImagePath = selectedCharacter.getImagePath(); // 경로 추출
             if (selectedMode == GameMode.CLASSIC_MODE) {
-                playGamePanel = new OlaOla(this, characterImagePath);
+                playGamePanel = new OlaOla(this, selectedCharacter);
             }
             else if (selectedMode==GameMode.TEST_MODE) {
-                playGamePanel = new TestIsComing(this, characterImagePath);
+                playGamePanel = new TestIsComing(this, selectedCharacter);
             }
             if (playGamePanel!=null) {
                 launchFrame.add(playGamePanel);
