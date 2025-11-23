@@ -2,10 +2,18 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.event.ActionListener;
 
-public class GameOverPanel extends JPanel{
+public class GameOverPanel extends JPanel implements ActionListener, GameConstants{
     private BufferedImage GOBimage;
     private GameLauncher launcher;
+
+    private BufferedImage[] falling;
+    private int fallingFrame = 0;
+    private Timer fallingTimer;
+    private static final int FALLING_ANIMATION_FRAMES = 3;
+    private static final int ANIMATION_DELAY_MS = 200;
+
     public GameOverPanel(GameLauncher launcher, int finalScore) {
         this.launcher = launcher;
 
@@ -52,9 +60,25 @@ public class GameOverPanel extends JPanel{
             e.printStackTrace();
         }
 
-        setPreferredSize(new Dimension(800, 600));
+        falling = new BufferedImage[FALLING_ANIMATION_FRAMES];
+        try {
+            for (int i = 0; i < FALLING_ANIMATION_FRAMES; i++) {
+                String path = "over/falling" + i + ".png";
+                falling[i] = ImageIO.read(getClass().getResourceAsStream(path));
+                if (falling[i] == null) {
+                    System.err.println("falling 이미지 로드 실패 : " + path);
+                }
+            }
+        }catch (Exception e) {
+            System.err.println("falling 이미지 로드 중 예외 발생");
+            e.printStackTrace();
+        }
+        fallingTimer = new Timer(ANIMATION_DELAY_MS, this);
+        fallingTimer.start();
+
+        setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
         setLayout(new BorderLayout());
-        //setBackground(Color.BLACK);
+        setBackground(Color.BLACK);
 
         JLabel messageLabel = new JLabel("GAME OVER", SwingConstants.CENTER);
         messageLabel.setFont(new Font("Arial", Font.BOLD, 40));
@@ -97,6 +121,34 @@ public class GameOverPanel extends JPanel{
         super.paintComponent(g);
         if (GOBimage != null) {
             g.drawImage(GOBimage, 0, 0, getWidth(), getHeight(), this);
+        }
+
+        BufferedImage currentImage = falling[fallingFrame];
+        if (currentImage != null) {
+            int x = GAME_WIDTH / 2 + 120;
+            int y = GAME_HEIGHT / 2 - 50;
+            int width = 150;
+            int height = 150;
+
+            g.drawImage(
+                    currentImage,
+                    x,
+                    y,
+                    width,
+                    height,
+                    this
+            );
+        }
+        else {
+            System.out.println("falling이미지가null입니다...");
+        }
+
+    }
+    @Override
+    public void actionPerformed(java.awt.event.ActionEvent e) {
+        if (e.getSource() == fallingTimer) {
+            fallingFrame = (fallingFrame + 1) % FALLING_ANIMATION_FRAMES;
+            repaint();
         }
     }
 }

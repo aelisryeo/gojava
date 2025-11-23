@@ -4,7 +4,7 @@ public enum CharacterSelect {
             "character/soo1.png",
             "character/soo2.png"
     }),
-    CHARACTER_안경수룡(new String[] {
+    CHARACTER_흑백수룡(new String[] {
             "character/ch0.png",
             "character/ch1.png",
             "character/ch2.png"

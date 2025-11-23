@@ -13,7 +13,6 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
     private final int PLAYER_Y_POSITION = GAME_HEIGHT - 350;
 
-    private Character player;
     private int playerStairIndex = 0;
 
     private Character chaser;
@@ -73,14 +72,6 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         loopTimer = new Timer(GAME_TICK_MS, this);
         loopTimer.start();
 
-        /*
-        player = new Character(
-                (GAME_WIDTH / 2) - 32,
-                PLAYER_Y_POSITION,
-                characterImagePath
-        );
-
-         */
 
         chaser = new Character(
                 playerX + CHASER_OFFSET_X,
@@ -92,10 +83,9 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         charAnim = new BufferedImage[paths.length];
         try {
             for (int i = 0; i < paths.length; i++) {
-                // 경로가 "/image/" 형태라면 수정해야 합니다. (이전 문제 해결 시 사용했던 경로 사용)
                 charAnim[i] = ImageIO.read(getClass().getResourceAsStream(paths[i]));
                 if (charAnim[i] == null) {
-                    System.err.println("❌ 캐릭터 애니메이션 이미지 로드 실패: " + paths[i]);
+                    System.err.println("캐릭터 애니메이션 이미지 로드 실패: " + paths[i]);
                 }
             }
         } catch (Exception e) {
@@ -106,7 +96,6 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         playerTimer.start();
 
         try {
-            // [수정 제안]
             TBimage = ImageIO.read(getClass().getResourceAsStream("image/testBackground.png"));
 
             if (TBimage == null) {
@@ -128,16 +117,13 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
         stairs.add(new StairInfo(currentX, currentY, STAIR_WIDTH, STAIR_HEIGHT, false, false, ObstacleType.NONE, ItemType.NONE));
 
-        // ⭐ 2. 다음 3개 계단을 오른쪽으로 강제 직진 생성 (핵심 수정) ⭐
         for (int i = 0; i < 1; i++) {
             StairInfo lastStair = stairs.get(stairs.size() - 1);
 
             int newY = lastStair.bounds.y - STAIR_GAP;
 
-            // ⭐ X 좌표는 이전 계단보다 STAIR_WIDTH 만큼 오른쪽으로 이동하도록 고정 ⭐
             int newX = lastStair.bounds.x + STAIR_WIDTH;
 
-            // isLeftDirection=false (오른쪽으로), isTurn=false (꺾임 요구 없음)
             stairs.add(new StairInfo(newX, newY, STAIR_WIDTH, STAIR_HEIGHT, false, false, ObstacleType.NONE, ItemType.NONE));
         }
 
@@ -196,7 +182,6 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
             return;
         }
 
-        // --- 추격자 로직 ---
         chaserMoveTimer += GAME_TICK_MS;
         while (chaserMoveTimer >= currentChaserInterval) {
             if(chaserStairIndex < playerStairIndex) {
@@ -229,25 +214,22 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         }
     }
 
-    // --- 7. 캐릭터 이동 및 계단 체크 로직 ---
     private void playerClimb() {
         if (isGameOver || stairs.size() < playerStairIndex + 2) return;
 
-        StairInfo targetStair = stairs.get(playerStairIndex + 1); // 밟을 계단
+        StairInfo targetStair = stairs.get(playerStairIndex + 1);
 
-        // 방향 체크
         if (targetStair.isLeftDirection != isPlayerFacingLeft) {
             System.out.println("게임 오버! 잘못된 방향으로 올랐습니다.");
             isGameOver = true;
             return;
         }
 
-        // 이동 확정: 다음 계단(targetStair)의 중앙에 스냅
         int targetX = targetStair.bounds.x + (STAIR_WIDTH / 2) - (PLAYER_WIDTH / 2);
         playerX = targetX;
-        playerStairIndex++; // 플레이어 인덱스 증가
+        playerStairIndex++;
 
-        // 방향 전환 키 요구 체크
+
         if (stairs.size() >= playerStairIndex + 2) {
             StairInfo currentStair = stairs.get(playerStairIndex);
             StairInfo nnextStair = stairs.get(playerStairIndex + 1);
@@ -261,13 +243,12 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
             requiresDirectionChange = false;
         }
 
-        // 스크롤 (계단과 추격자를 아래로 내림)
+
         for (StairInfo stair : stairs) {
             stair.bounds.y += STAIR_GAP;
         }
         chaser.setY(chaser.getY() + STAIR_GAP);
 
-        // 화면 밖 계단 제거
         removeOldStairs();
 
         generateNewStair();
@@ -282,14 +263,13 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
             java.net.URL soundURL = getClass().getResource("audio/"+name+".wav");
 
             if (soundURL == null) {
-                System.err.println("❌ 사운드 파일 로드 실패: 경로를 확인하십시오.");
+                System.err.println("사운드 파일 로드 실패: 경로를 확인하십시오.");
                 return;
             }
             AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundURL);
             Clip clip = AudioSystem.getClip();
             clip.open(audioIn);
 
-            // 사운드를 한 번 재생합니다.
             clip.start();
         } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
             System.err.println("사운드 재생 중 예외 발생: " + e.getMessage());
@@ -313,8 +293,6 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
     private void updateDifficulty() {
         if (score > 0 && score % DIFFICULTY == 0) {
-            //double newTime = timePerStair - TIME_REDUCTION;
-            //timePerStair = Math.max(newTime, MIN_TIME_PER_STAIR);
 
             int newInterval = currentChaserInterval - CHASER_INTERVAL_REDUCTION;
             currentChaserInterval = Math.max(newInterval,CHASER_MIN_INTERVAL);
@@ -354,13 +332,11 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         repaint();
     }
 
-    // --- 9. 그리기 (랜더링) ---
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
         if (TBimage != null) {
-            // 패널 크기(GAME_WIDTH, GAME_HEIGHT)에 맞춰 이미지를 늘려 그립니다.
             g.drawImage(
                     TBimage,
                     0,
@@ -371,7 +347,6 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
             );
         }
 
-        // 1. 계단 그리기
         for (StairInfo stair : stairs) {
             g.setColor(Color.WHITE);
             if (stairs.indexOf(stair) == playerStairIndex) {
@@ -416,11 +391,10 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
             }
         }
 
-        g2d.dispose(); // g2d 사용 후 반납
+        g2d.dispose();
 
         drawCharacter(g, chaser, chaser.getX(), chaser.getY(), isChaserFacingLeft);
 
-        // 3. 점수 및 정보 표시
         g.setColor(Color.YELLOW);
         g.setFont(new Font("SansSerif", Font.BOLD, 18));
         g.drawString("Score: " + score, 10, 20);
@@ -439,7 +413,6 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
     }
 
-    // 캐릭터 그리기 헬퍼 (좌우 반전 포함)
     private void drawCharacter(Graphics g, Character character, int x, int y, boolean isFacingLeft) {
         if (character == null || character.getImage() == null) return;
 
@@ -455,7 +428,6 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         g2d.dispose();
     }
 
-    // Timer 이벤트 처리 (게임 루프)
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == loopTimer) {
@@ -465,7 +437,6 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         if (e.getSource() == playerTimer) {
             currentCharFrame = (currentCharFrame + 1) % PLAYER_ANIMATION_FRAMES;
 
-            // 2. ⭐️ 캐릭터 프레임 변경
             if (charAnim != null && charAnim.length > 0) {
                 currentCharFrame = (currentCharFrame + 1) % charAnim.length;
             }
@@ -474,7 +445,6 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         }
     }
 
-    // 사용하지 않는 KeyListener 메소드
     @Override public void keyTyped(KeyEvent e) {}
     @Override public void keyReleased(KeyEvent e) {}
 }

@@ -11,7 +11,6 @@ import javax.sound.sampled.*;
 
 public class OlaOla extends JPanel implements ActionListener, KeyListener, GameConstants {
 
-    private Character player;
     private List<StairInfo> stairs = new ArrayList<>();
 
     private boolean isGameOver = false;
@@ -96,22 +95,14 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
         loopTimer = new Timer(GAME_TICK_MS, this);
         loopTimer.start();
-/*
-        player = new Character(
-                (GAME_WIDTH / 2) - 32,
-                PLAYER_Y_POSITION,
-                characterImagePath
-        );
 
- */
         String[] paths = selectedCharacter.getImagePath();
         charAnim = new BufferedImage[paths.length];
         try {
             for (int i = 0; i < paths.length; i++) {
-                // 경로가 "/image/" 형태라면 수정해야 합니다. (이전 문제 해결 시 사용했던 경로 사용)
                 charAnim[i] = ImageIO.read(getClass().getResourceAsStream(paths[i]));
                 if (charAnim[i] == null) {
-                    System.err.println("❌ 캐릭터 애니메이션 이미지 로드 실패: " + paths[i]);
+                    System.err.println("캐릭터 애니메이션 이미지 로드 실패: " + paths[i]);
                 }
             }
         } catch (Exception e) {
@@ -200,9 +191,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             e.printStackTrace();
         }
 
-
-
-        // 초기 계단 생성
         initializeStairs();
         updateDirectionKey();
     }
@@ -263,7 +251,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             newX_C = expectedX_C;
         }
 
-        // 장애물 생성 결정
         if (pendingObstacle == ObstacleType.NONE) {
             if (random.nextDouble() < BASE_OBSTACLE_SPAWN_CHANCE) {
                 ArrayList<ObstacleType> possibleObstacles = new ArrayList<>();
@@ -280,7 +267,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             }
         }
 
-        //장애물 배치 시도
         boolean isTurnPoint_B = lastStair.isTurnPoint;
         boolean isSafeToSpawn = !isTurnPoint_B && !isTurnPoint_C;
 
@@ -313,11 +299,9 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             }
         }
 
-        //다음 계단 추가
         stairs.add(new StairInfo(newX_C, newY, STAIR_WIDTH, STAIR_HEIGHT, nextIsLeft_C, isTurnPoint_C, ObstacleType.NONE, ItemType.NONE));
 
 
-        // 리스트 관리
         if (stairs.size() > INITIAL_STAIR_COUNT + 10) {
             stairs.remove(0);
         }
@@ -400,7 +384,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             return;
         }
 
-        //player.setX(nextPlayerX);
         playerX = nextPlayerX;
         stairs.remove(0);
 
@@ -437,14 +420,13 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             java.net.URL soundURL = getClass().getResource("audio/"+name+".wav");
 
             if (soundURL == null) {
-                System.err.println("❌ 사운드 파일 로드 실패: 경로를 확인하십시오.");
+                System.err.println("사운드 파일 로드 실패: 경로를 확인하십시오.");
                 return;
             }
             AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundURL);
             Clip clip = AudioSystem.getClip();
             clip.open(audioIn);
 
-            // 사운드를 한 번 재생합니다.
             clip.start();
         } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
             System.err.println("사운드 재생 중 예외 발생: " + e.getMessage());
@@ -549,7 +531,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         currentLife--;
         System.out.println("life--" + currentLife);
 
-        // TODO: 여기서 화면을 붉게 깜빡이도록
 
         if (currentLife <= 0) {
             isGameOver = true;
@@ -641,7 +622,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         }
     }
 
-    // --- 9. 그리기 (랜더링) ---
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -657,7 +638,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             );
         }
 
-        //남은 시간 바
         if (!isGameOver) {
             double currentTimerValue;
             double maxTimerValue;
@@ -684,7 +664,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             g.fillRect(0, 0, barWidth, 15);
         }
 
-        // 1. 계단 그리기
         for (StairInfo stair : stairs) {
             if (stair == stairs.get(0)) {
                 g.setColor(Color.ORANGE);
@@ -701,23 +680,21 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
                 if (stair.obstacle == ObstacleType.PROFESSOR) {
                     g.setColor(Color.RED);
-                    obstacleText = "P"; // Professor
+                    obstacleText = "P";
                     obstacleImage = imageProfessor;
                 } else if (stair.obstacle == ObstacleType.STUDENT) {
                     g.setColor(Color.RED);
-                    obstacleText = "S"; // Student
+                    obstacleText = "S";
                     obstacleImage = imageStudent;
                 } else if (stair.obstacle == ObstacleType.MUSHROOM) {
                     g.setColor(Color.RED);
-                    obstacleText = "M"; // Mushroom
+                    obstacleText = "M";
                     obstacleImage = imageMushroom;
                 }
 
                 if (obstacleImage!= null) {
 
-                    // X 위치: 계단 중앙에 오도록 조정
                     int obstacleX = stair.bounds.x + (STAIR_WIDTH / 2) - (ITEM_HEIGHT / 2);
-                    // Y 위치: 계단 상단에 딱 붙도록 조정
                     int obstacleY = stair.bounds.y - ITEM_HEIGHT;
 
                     g.drawImage(
@@ -752,9 +729,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 g.drawString(itemText, stair.bounds.x + 5, stair.bounds.y + 15);
                 if (itemImage!= null) {
 
-                    // X 위치: 계단 중앙에 오도록 조정
                     int itemX = stair.bounds.x + (STAIR_WIDTH / 2) - (ITEM_HEIGHT / 2);
-                    // Y 위치: 계단 상단에 딱 붙도록 조정
                     int itemY = stair.bounds.y - ITEM_HEIGHT;
 
                     g.drawImage(
@@ -776,13 +751,10 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             currentCharImage = charAnim[currentCharFrame];
         }
 
-        // player 객체가 없다면, 기존 위치 상수를 사용해야 합니다.
-        // 기존 Character 초기화 위치를 상수로 가정합니다.
-        //final int PLAYER_X = (GAME_WIDTH / 2) - 32;
         final int PLAYER_Y = PLAYER_Y_POSITION;
 
         if (currentCharImage != null) {
-            if (isPlayerFacingLeft) { // isPlayerFacingLeft는 기존 필드
+            if (isPlayerFacingLeft) {
                 g2d.scale(-1, 1);
                 int flippedX = -(playerX + PLAYER_WIDTH);
                 g2d.drawImage(
@@ -805,9 +777,8 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             }
         }
 
-        g2d.dispose(); // g2d 사용 후 반납
+        g2d.dispose();
 
-        // 3. 점수 및 정보 표시
         g.setColor(Color.YELLOW);
         g.setFont(new Font("SansSerif", Font.BOLD, 18));
         g.drawString("Score: " + score, 10, 20);
@@ -846,7 +817,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
 
         if (currentState != GameState.CLIMBING) {
-            g.setColor(new Color(0, 0, 0, 150)); // 반투명한 검은색 배경
+            g.setColor(new Color(0, 0, 0, 150));
             g.fillRect(0, 15, GAME_WIDTH, GAME_HEIGHT);
 
             g.setColor(Color.WHITE);
@@ -915,15 +886,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             }
         }
 
-/*
-        // 4. 게임 오버 메시지
-        if (isGameOver) {
-            g.setColor(Color.RED);
-            g.setFont(new Font("SansSerif", Font.BOLD, 40));
-            g.drawString("GAME OVER", GAME_WIDTH / 2 - 120, GAME_HEIGHT / 2);
-        }
-
- */
 
         g.setColor(Color.RED);
         g.setFont(new Font("SansSerif", Font.BOLD, 18));
@@ -931,7 +893,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
     }
 
 
-    // Timer 이벤트 처리 (게임 루프)
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == loopTimer) {
@@ -941,7 +902,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         else if (e.getSource() == mushroomATimer) {
             currentMushroomFrame = (currentMushroomFrame + 1) % MUSHROOM_ANIMATION_FRAMES;
 
-            // 2. ⭐️ 캐릭터 프레임 변경
             if (charAnim != null && charAnim.length > 0) {
                 currentCharFrame = (currentCharFrame + 1) % charAnim.length;
             }
@@ -954,7 +914,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         }
     }
 
-    // 사용하지 않는 KeyListener 메소드
     @Override public void keyTyped(KeyEvent e) {}
     @Override public void keyReleased(KeyEvent e) {}
 

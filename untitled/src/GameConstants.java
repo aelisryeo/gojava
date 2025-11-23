@@ -1,5 +1,4 @@
 public interface GameConstants {
-    // 게임 상수
     int GAME_WIDTH = 900;
     int GAME_HEIGHT = 700;
 
