@@ -2,7 +2,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.InputStream;
 import javax.imageio.ImageIO;
 
 public class StartPanel extends JPanel implements GameConstants {
@@ -15,7 +14,8 @@ public class StartPanel extends JPanel implements GameConstants {
     private double bobbingAngle = 0;
 
 
-    public StartPanel(ActionListener startListener, ActionListener characterSelectListener, CharacterSelect currentCharacter) {
+    public StartPanel(ActionListener startListener, ActionListener characterSelectListener,
+                      ActionListener rulesListener, CharacterSelect currentCharacter) {
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
         setBackground(Color.GRAY);
         setLayout(new BorderLayout());
@@ -26,6 +26,32 @@ public class StartPanel extends JPanel implements GameConstants {
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setOpaque(false);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(100, 0, 0, 0));
+
+
+        JButton rulesButton = createStyledButton("규칙 설명", 22, new Color(149, 200, 237));
+        rulesButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        rulesButton.addActionListener(rulesListener);
+        rulesButton.setActionCommand("SHOW_RULES");
+
+        JPanel northPanel = new JPanel(new BorderLayout());
+        northPanel.setOpaque(false);
+        northPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 10));
+        northPanel.add(titleLabel, BorderLayout.CENTER);
+        rulesButton.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        rulesButton.setPreferredSize(new Dimension(150,40));
+
+        JPanel rulesWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        rulesWrapper.setOpaque(false);
+        rulesWrapper.add(rulesButton);
+        northPanel.add(rulesWrapper, BorderLayout.EAST);
+
+        int buttonWidth = 150;
+
+        JPanel westSpacer = new JPanel();
+        westSpacer.setOpaque(false);
+        westSpacer.setPreferredSize(new Dimension(buttonWidth, 1));
+        northPanel.add(westSpacer, BorderLayout.WEST);
+
 
         JPanel characterSelectionArea = new JPanel();
         characterSelectionArea.setOpaque(false);
@@ -81,7 +107,8 @@ public class StartPanel extends JPanel implements GameConstants {
             e.printStackTrace();
         }
 
-        add(titleLabel, BorderLayout.NORTH);
+        //add(titleLabel, BorderLayout.NORTH);
+        add(northPanel, BorderLayout.NORTH);
         add(centerContainer, BorderLayout.CENTER);
 
         animTimer = new Timer(50, e -> {

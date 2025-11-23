@@ -9,6 +9,8 @@ public class GameLauncher {
 
     private CharacterSelect selectedCharacter = CharacterSelect.CHARACTER_기쁜수룡;
 
+    private RulesPanel rulesPanel;
+
     private GameMode currentGameMode;
     public enum GameMode {CLASSIC_MODE, TEST_MODE}
 
@@ -40,14 +42,43 @@ public class GameLauncher {
             showCharacterSelectPanel();
         };
 
-            StartPanel startPanel = new StartPanel(startAction, characterSelectAction, this.selectedCharacter);
+        ActionListener rulesListener = e -> {
+            if (e.getActionCommand().equals("SHOW_RULES")){
+                showRulesPanel();
+            }
+        };
+
+            StartPanel startPanel = new StartPanel(startAction,
+                    characterSelectAction, rulesListener, this.selectedCharacter);
             launchFrame.add(startPanel);
 
             launchFrame.pack();
             launchFrame.setLocationRelativeTo(null);
             launchFrame.setVisible(true);
             launchFrame.repaint();
-        }
+    }
+
+    private void showRulesPanel() {
+        launchFrame.getContentPane().removeAll();
+
+        ActionListener backListener = e -> {
+            if (e.getActionCommand().equals("BACK_TO_START")) {
+                showStartPanel();
+            }
+        };
+
+        rulesPanel = new RulesPanel(backListener);
+
+        launchFrame.add(rulesPanel);
+
+        launchFrame.pack();
+        launchFrame.setLocationRelativeTo(null);
+
+        launchFrame.revalidate();
+        launchFrame.repaint();
+        rulesPanel.requestFocusInWindow();
+    }
+
 
     public void showCharacterSelectPanel() {
         launchFrame.getContentPane().removeAll();
