@@ -40,7 +40,7 @@ public class RulesPanel extends JPanel implements GameConstants {
         JTextArea rulesArea = new JTextArea(rulesText);
         rulesArea.setFont(GameFont.getFont( Font.PLAIN, 18));
         rulesArea.setForeground(Color.WHITE);
-        rulesArea.setBackground(new Color(50, 50, 50)); // 어두운 배경색
+        rulesArea.setBackground(Color.DARK_GRAY); 
         rulesArea.setEditable(false);
         rulesArea.setLineWrap(true);
         rulesArea.setWrapStyleWord(true);
