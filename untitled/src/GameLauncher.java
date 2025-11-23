@@ -8,7 +8,7 @@ public class GameLauncher {
 
     private JFrame launchFrame;
 
-    private CharacterSelect selectedCharacter = CharacterSelect.CHARACTER_수룡;
+    private CharacterSelect selectedCharacter = CharacterSelect.CHARACTER_기쁜수룡;
 
 
     public enum GameMode {CLASSIC_MODE, TEST_MODE}

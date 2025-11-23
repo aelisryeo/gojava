@@ -7,7 +7,7 @@ import javax.imageio.ImageIO;
 public class StartPanel extends JPanel implements GameConstants {
     private BufferedImage bImage;
     private BufferedImage characterImage;
-    private CharacterSelect selectedCharacter = CharacterSelect.CHARACTER_수룡;
+    private CharacterSelect selectedCharacter = CharacterSelect.CHARACTER_기쁜수룡;
 
     public StartPanel(ActionListener startListener, ActionListener characterSelectListener, CharacterSelect currentCharacter) {
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
