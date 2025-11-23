@@ -668,7 +668,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             if (stair == stairs.get(0)) {
                 g.setColor(Color.ORANGE);
             } else {
-                g.setColor(Color.WHITE);
+                g.setColor(Color.DARK_GRAY);
             }
             g.fillRect(stair.bounds.x, stair.bounds.y, stair.bounds.width, stair.bounds.height);
 
@@ -832,10 +832,10 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
                 BufferedImage currentImage = typing[currentTypeFrame];
                 if (currentImage != null) {
-                    int x = GAME_WIDTH / 2 + 120;
+                    int x = GAME_WIDTH / 2 + 140;
                     int y = GAME_HEIGHT / 2 - 50;
-                    int width = 150;
-                    int height = 150;
+                    int width = 200;
+                    int height = 200;
 
                     g.drawImage(
                             currentImage,
@@ -866,10 +866,10 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
                 BufferedImage currentImage = hitMushrooms[currentMushroomFrame];
                 if (currentImage != null) {
-                    int x = GAME_WIDTH / 2 + 120;
+                    int x = GAME_WIDTH / 2 + 140;
                     int y = GAME_HEIGHT / 2 - 50;
-                    int width = 150;
-                    int height = 150;
+                    int width = 200;
+                    int height = 200;
 
                     g.drawImage(
                             currentImage,

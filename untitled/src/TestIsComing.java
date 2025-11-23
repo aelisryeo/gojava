@@ -348,7 +348,7 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         }
 
         for (StairInfo stair : stairs) {
-            g.setColor(Color.WHITE);
+            g.setColor(Color.DARK_GRAY);
             if (stairs.indexOf(stair) == playerStairIndex) {
                 g.setColor(Color.ORANGE);
             }
