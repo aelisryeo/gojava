@@ -2,6 +2,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,7 +32,9 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
     private ObstacleType pendingObstacle = ObstacleType.NONE;
     private int testItemCount = 0;
     private double clockBuffTimer = 0;
-    private double testBuffeTimer = 0;
+    private double testBuffTimer = 0;
+
+    private int damageFlashAlpha = 0;
 
     private boolean isPlayerFacingLeft = false;
     private int currentLife;
@@ -319,11 +322,19 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         }
 
         if (currentState == GameState.CLIMBING) {
+
+            if (damageFlashAlpha > 0) {
+                damageFlashAlpha -= 10;
+                if (damageFlashAlpha < 0) {
+                    damageFlashAlpha = 0;
+                }
+            }
+
             if (clockBuffTimer > 0) {
                 clockBuffTimer -= GAME_TICK_MS;
             }
-            if (testBuffeTimer > 0) {
-                testBuffeTimer -= GAME_TICK_MS;
+            if (testBuffTimer > 0) {
+                testBuffTimer -= GAME_TICK_MS;
             }
 
             double currentTickSpeed = GAME_TICK_MS;
@@ -343,6 +354,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 endMinigame(false);
             }
         }
+
     }
 
 
@@ -403,7 +415,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         generateNewStair();
 
         int pointsEarned = 1;
-        if (testBuffeTimer > 0) {
+        if (testBuffTimer > 0) {
             pointsEarned = 2;
             System.out.println("점수 두 배");
         }
@@ -439,7 +451,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         playSound("item");
 
         if (item == ItemType.CLOCK) {
-            clockBuffTimer = 5000.0;
+            clockBuffTimer = 2000.0;
             System.out.println("시계 획득");
         } else if (item == ItemType.HEART) {
             int newLife = currentLife + 1;
@@ -451,7 +463,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
             if (testItemCount >= 5) {
                 System.out.println("점수 두 배");
-                testBuffeTimer = 5000.0;
+                testBuffTimer = 2000.0;
 
                 testItemCount = 0;
                 System.out.println("시험지 초기화");
@@ -467,6 +479,13 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             score -= (int)(dvalue * 10 + 1);
             currentLife -= 1;
             System.out.println("과제를 왜 이렇게 해왓나 학생... 자네는 감점이네 (현재: " + score + "점)");
+            damageFlashAlpha = 150;
+
+            if (currentLife <= 0) {
+                isGameOver = true;
+                System.out.println("게임 오버: 교수님에게 털림");
+            }
+
             return;
         }
 
@@ -622,6 +641,37 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         }
     }
 
+    private void drawRadialEffect(Graphics2D g2d, Color baseColor, int alpha) {
+        if (alpha <= 0) return;
+        alpha = Math.min(255, alpha);
+
+        Point2D center = new Point2D.Float(GAME_WIDTH / 2.0f, GAME_HEIGHT / 2.0f);
+
+        float radius = Math.max(GAME_WIDTH, GAME_HEIGHT) * 0.7f;
+
+        float[] dist = {0.0f, 0.4f, 1.0f};
+
+        Color[] colors = {
+                new Color(0, 0, 0, 0),
+                new Color(baseColor.getRed(), baseColor.getGreen(), baseColor.getBlue(), 0),
+                new Color(baseColor.getRed(), baseColor.getGreen(), baseColor.getBlue(), alpha)
+        };
+
+
+        try {
+            RadialGradientPaint paint = new RadialGradientPaint(center, radius, dist, colors);
+            Paint oldPaint = g2d.getPaint();
+
+            g2d.setPaint(paint);
+            g2d.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            g2d.setPaint(oldPaint);
+        } catch (Exception e) {
+            g2d.setColor(new Color(baseColor.getRed(), baseColor.getGreen(), baseColor.getBlue(), alpha/2));
+            g2d.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+        }
+    }
+
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -670,7 +720,28 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             } else {
                 g.setColor(Color.DARK_GRAY);
             }
-            g.fillRect(stair.bounds.x, stair.bounds.y, stair.bounds.width, stair.bounds.height);
+            g.fillRoundRect(stair.bounds.x, stair.bounds.y + 10, stair.bounds.width, stair.bounds.height, 15, 15);
+
+            if (stair == stairs.get(0) && requiresDirectionChange) {
+
+                g.setColor(new Color(0, 0, 0, 160));
+                int keySize = 40;
+                int keyX = stair.bounds.x + (stair.bounds.width - keySize) / 2;
+                int keyY = stair.bounds.y;
+
+                g.fillRoundRect(keyX, keyY, keySize, keySize, 10, 10);
+
+                g.setColor(Color.WHITE);
+                g.setFont(GameFont.getFont(Font.PLAIN, 24f));
+
+                String keyText = currentDirectionKey;
+
+                FontMetrics fm = g.getFontMetrics();
+                int textX = keyX + (keySize - fm.stringWidth(keyText)) / 2;
+                int textY = keyY + (keySize - fm.getHeight()) / 2 + fm.getAscent();
+
+                g.drawString(keyText, textX, textY);
+            }
 
             BufferedImage obstacleImage = null;
             BufferedImage itemImage = null;
@@ -679,16 +750,10 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 String obstacleText = "";
 
                 if (stair.obstacle == ObstacleType.PROFESSOR) {
-                    g.setColor(Color.RED);
-                    obstacleText = "P";
                     obstacleImage = imageProfessor;
                 } else if (stair.obstacle == ObstacleType.STUDENT) {
-                    g.setColor(Color.RED);
-                    obstacleText = "S";
                     obstacleImage = imageStudent;
                 } else if (stair.obstacle == ObstacleType.MUSHROOM) {
-                    g.setColor(Color.RED);
-                    obstacleText = "M";
                     obstacleImage = imageMushroom;
                 }
 
@@ -707,25 +772,19 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                     );
                 }
 
-                g.setFont(new Font("SansSerif", Font.BOLD, 14));
+                g.setFont(GameFont.getFont(Font.PLAIN, 18));
                 g.drawString(obstacleText, stair.bounds.x + 5, stair.bounds.y + 15);
             } else if (stair.item != ItemType.NONE) {
                 String itemText = "";
                 if (stair.item == ItemType.CLOCK) {
-                    g.setColor(Color.CYAN);
-                    itemText = "C";
                     itemImage = imageClock;
                 } else if (stair.item == ItemType.HEART) {
-                    g.setColor(Color.PINK);
-                    itemText = "H";
                     itemImage = imageHeart;
                 } else if (stair.item == ItemType.TEST) {
-                    g.setColor(Color.GREEN);
-                    itemText = "T";
                     itemImage = imageTest;
                 }
 
-                g.setFont(new Font("SansSerif", Font.BOLD, 14));
+                g.setFont(GameFont.getFont(Font.PLAIN, 18));
                 g.drawString(itemText, stair.bounds.x + 5, stair.bounds.y + 15);
                 if (itemImage!= null) {
 
@@ -779,38 +838,56 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
         g2d.dispose();
 
+        Graphics2D gEffect = (Graphics2D) g.create();
+
+        if (damageFlashAlpha > 0) {
+            drawRadialEffect(gEffect, Color.RED, damageFlashAlpha);
+        }
+
+        if (clockBuffTimer > 0) {
+            drawRadialEffect(gEffect, Color.CYAN, 100);
+
+            gEffect.setStroke(new BasicStroke(10));
+            gEffect.setColor(new Color(0, 255, 255, 100));
+            gEffect.drawRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            gEffect.setStroke(new BasicStroke(1));
+        }
+
+        if (testBuffTimer > 0) {
+            drawRadialEffect(gEffect, new Color(255, 215, 0), 100);
+
+            gEffect.setStroke(new BasicStroke(10));
+            gEffect.setColor(new Color(255, 215, 0, 100));
+            gEffect.drawRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+            gEffect.setStroke(new BasicStroke(1));
+        }
+
         g.setColor(Color.YELLOW);
-        g.setFont(new Font("SansSerif", Font.BOLD, 18));
+        g.setFont(GameFont.getFont(Font.PLAIN, 18));
         g.drawString("Score: " + score, 10, 20);
         g.drawString("Direction: " + (isPlayerFacingLeft ? "LEFT" : "RIGHT"), 10, 40);
-
-        if(requiresDirectionChange) {
-            g.setColor(Color.CYAN);
-            g.setFont(new Font("SansSerif", Font.BOLD, 24));
-            g.drawString("TURN KEY : [" + currentDirectionKey + "]", GAME_WIDTH - 200, 400);
-        }
 
         int buffY_Position = 80;
 
         if (clockBuffTimer > 0) {
             g.setColor(Color.ORANGE);
-            g.setFont(new Font("SansSerif", Font.BOLD, 16));
+            g.setFont(GameFont.getFont(Font.PLAIN, 18));
             String clockText = "Clock: " + clockBuffTimer;
             g.drawString(clockText, 10, buffY_Position);
             buffY_Position += 20;
         }
 
-        if (testBuffeTimer > 0) {
+        if (testBuffTimer > 0) {
             g.setColor(Color.ORANGE);
-            g.setFont(new Font("SansSerif", Font.BOLD, 16));
-            String testText = "Test: " + testBuffeTimer;
+            g.setFont(GameFont.getFont(Font.PLAIN, 18));
+            String testText = "Test: " + testBuffTimer;
             g.drawString(testText, 10, buffY_Position);
             buffY_Position += 20;
         }
 
         if (testItemCount > 0) {
             g.setColor(Color.ORANGE);
-            g.setFont(new Font("SansSerif", Font.BOLD, 16));
+            g.setFont(GameFont.getFont(Font.PLAIN, 18));
             String testText = "Test: " + testItemCount + "/5";
             g.drawString(testText, 10, buffY_Position);
         }
@@ -821,7 +898,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             g.fillRect(0, 15, GAME_WIDTH, GAME_HEIGHT);
 
             g.setColor(Color.WHITE);
-            g.setFont(new Font("SansSerif", Font.BOLD, 30));
+            g.setFont(GameFont.getFont(Font.PLAIN, 30));
 
             if (currentState == GameState.MINIGAME_STUDENT) {
                 g.drawString("입력하세요 (입력 후 엔터)", GAME_WIDTH / 2 - 100, GAME_HEIGHT / 2 - 100);
@@ -888,7 +965,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
 
         g.setColor(Color.RED);
-        g.setFont(new Font("SansSerif", Font.BOLD, 18));
+        g.setFont(GameFont.getFont(Font.PLAIN, 18));
         g.drawString("Life: " + currentLife, GAME_WIDTH - 80, 40);
     }
 

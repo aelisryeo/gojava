@@ -3,7 +3,6 @@ import java.awt.event.ActionListener;
 import java.awt.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-
 public class GameLauncher {
 
     private JFrame launchFrame;

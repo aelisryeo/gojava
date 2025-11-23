@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import javax.imageio.ImageIO;
 
 public class StartPanel extends JPanel implements GameConstants {
@@ -9,16 +10,22 @@ public class StartPanel extends JPanel implements GameConstants {
     private BufferedImage characterImage;
     private CharacterSelect selectedCharacter = CharacterSelect.CHARACTER_기쁜수룡;
 
+    private Timer animTimer;
+    private int bobbingOffset = 0;
+    private double bobbingAngle = 0;
+
+
     public StartPanel(ActionListener startListener, ActionListener characterSelectListener, CharacterSelect currentCharacter) {
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
         setBackground(Color.DARK_GRAY);
         setLayout(new BorderLayout());
 
         JLabel titleLabel = new JLabel("올라올라", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("sansSerif", Font.BOLD, 60));
-        titleLabel.setForeground(Color.YELLOW);
+
+        titleLabel.setFont(GameFont.getFont(Font.PLAIN, 90f));
+        titleLabel.setForeground(Color.WHITE);
         titleLabel.setOpaque(false);
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(50, 0, 0, 0));
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(100, 0, 0, 0));
 
 
         JPanel characterSelectionArea = new JPanel();
@@ -26,27 +33,24 @@ public class StartPanel extends JPanel implements GameConstants {
         characterSelectionArea.setLayout(new BoxLayout(characterSelectionArea, BoxLayout.Y_AXIS));
 
 
-        JButton selectCharButton = new JButton("캐릭터 선택");
-        selectCharButton.setFont(new Font("SansSerif", Font.BOLD, 20));
+        JButton selectCharButton = createStyledButton("캐릭터 선택", 22, new Color(200, 180, 200));
         selectCharButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         selectCharButton.addActionListener(characterSelectListener);
 
 
-        JButton startButton = new JButton("올라올라");
-        startButton.setFont(new Font("SansSerif", Font.BOLD, 30));
+        JButton startButton =  createStyledButton("올라올라", 30, new Color(200, 180, 200));
         startButton.setPreferredSize(new Dimension(300, 80));
         startButton.setActionCommand("CLASSIC_MODE");
         startButton.addActionListener(startListener);
 
-        JButton modeStartButton = new JButton("술래잡기");
-        modeStartButton.setFont(new Font("SansSerif", Font.BOLD, 30));
+        JButton modeStartButton =  createStyledButton("술래잡기", 30, new Color(200, 180, 200));
         modeStartButton.setPreferredSize(new Dimension(300, 80));
         modeStartButton.setActionCommand("TEST_MODE");
         modeStartButton.addActionListener(startListener);
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 50, 120));
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 50, 0));
         buttonPanel.add(startButton);
         buttonPanel.add(modeStartButton);
 
@@ -55,12 +59,12 @@ public class StartPanel extends JPanel implements GameConstants {
         centerContainer.setLayout(new BoxLayout(centerContainer, BoxLayout.Y_AXIS));
 
         centerContainer.add(Box.createVerticalGlue());
-        centerContainer.add(Box.createVerticalStrut(70));
+        centerContainer.add(Box.createVerticalStrut(220));
         centerContainer.add(selectCharButton);
-        centerContainer.add(Box.createVerticalStrut(20));
+        centerContainer.add(Box.createVerticalStrut(40));
 
         centerContainer.add(buttonPanel);
-        centerContainer.add(Box.createVerticalStrut(40));
+        centerContainer.add(Box.createVerticalStrut(50));
         centerContainer.add(Box.createVerticalGlue());
         try {
 
@@ -80,6 +84,44 @@ public class StartPanel extends JPanel implements GameConstants {
 
         add(titleLabel, BorderLayout.NORTH);
         add(centerContainer, BorderLayout.CENTER);
+
+        animTimer = new Timer(50, e -> {
+            bobbingAngle += 0.15;
+            bobbingOffset = (int) (Math.sin(bobbingAngle) * 10);
+            repaint();
+        });
+        animTimer.start();
+    }
+
+    private JButton createStyledButton(String text, int fontSize, Color baseColor) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                if (getModel().isRollover()) {
+                    g2.setColor(baseColor.brighter());
+                } else {
+                    g2.setColor(baseColor);
+                }
+
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+
+                g2.dispose();
+
+                super.paintComponent(g);
+            }
+        };
+
+        button.setFont(GameFont.getFont(Font.PLAIN, (float)fontSize));
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        return button;
     }
 
     @Override
@@ -90,11 +132,13 @@ public class StartPanel extends JPanel implements GameConstants {
         }
 
         if (characterImage != null) {
-            int charWidth = 64;
-            int charHeight = 64;
+            int charWidth = 200;
+            int charHeight = 200;
             int x = (getWidth() / 2) - (charWidth / 2);
-            int y = (getHeight() / 2) -190;
+            int y = (getHeight() / 2) - 150 + bobbingOffset;
             g.drawImage(characterImage, x, y, charWidth, charHeight, this);
         }
     }
+
+
 }

@@ -1,10 +1,12 @@
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 
-public class GameOverPanel extends JPanel implements ActionListener, GameConstants{
+public class GameOverPanel extends JPanel implements ActionListener, GameConstants {
     private BufferedImage GOBimage;
     private GameLauncher launcher;
 
@@ -17,133 +19,131 @@ public class GameOverPanel extends JPanel implements ActionListener, GameConstan
     public GameOverPanel(GameLauncher launcher, int finalScore) {
         this.launcher = launcher;
 
-        try {
-            if(finalScore==0) {
-                GOBimage = ImageIO.read(getClass().getResourceAsStream("image/gameoverWorst.png"));
-
-                if (GOBimage == null) {
-                    System.err.println("배경 이미지 로드 실패: gameoverWorst.png 파일을 찾을 수 없습니다.");
-                }
-            }
-            else if(finalScore <= 20) {
-                GOBimage = ImageIO.read(getClass().getResourceAsStream("image/gameoverBad.png"));
-
-                if (GOBimage == null) {
-                    System.err.println("배경 이미지 로드 실패: gameoverBad.png 파일을 찾을 수 없습니다.");
-                }
-            } else if (finalScore <=50) {
-                GOBimage = ImageIO.read(getClass().getResourceAsStream("image/gameoverSoso.png"));
-
-                if (GOBimage == null) {
-                    System.err.println("배경 이미지 로드 실패: gameoverSoso.png 파일을 찾을 수 없습니다.");
-                }
-            } else if (finalScore <=100) {
-                GOBimage = ImageIO.read(getClass().getResourceAsStream("image/gameoverGood.png"));
-
-                if (GOBimage == null) {
-                    System.err.println("배경 이미지 로드 실패: gameoverGood.png 파일을 찾을 수 없습니다.");
-                }
-            } else if (finalScore <= 150){
-                GOBimage = ImageIO.read(getClass().getResourceAsStream("image/gameoverBest.png"));
-
-                if (GOBimage == null) {
-                    System.err.println("배경 이미지 로드 실패: gameoverBest.png 파일을 찾을 수 없습니다.");
-                }
-            } else {
-                GOBimage = ImageIO.read(getClass().getResourceAsStream("image/gameoverGyosoo.png"));
-                if (GOBimage == null) {
-                    System.err.println("배경 이미지 로드 실패: gameoverGyosoo.png 파일을 찾을 수 없읍니다.");
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("배경 이미지 로드 중 예외 발생.");
-            e.printStackTrace();
-        }
-
-        falling = new BufferedImage[FALLING_ANIMATION_FRAMES];
-        try {
-            for (int i = 0; i < FALLING_ANIMATION_FRAMES; i++) {
-                String path = "over/falling" + i + ".png";
-                falling[i] = ImageIO.read(getClass().getResourceAsStream(path));
-                if (falling[i] == null) {
-                    System.err.println("falling 이미지 로드 실패 : " + path);
-                }
-            }
-        }catch (Exception e) {
-            System.err.println("falling 이미지 로드 중 예외 발생");
-            e.printStackTrace();
-        }
-        fallingTimer = new Timer(ANIMATION_DELAY_MS, this);
-        fallingTimer.start();
+        loadImages(finalScore);
 
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
-        setLayout(new BorderLayout());
-        setBackground(Color.BLACK);
+        setLayout(new GridBagLayout());
 
-        JLabel messageLabel = new JLabel("GAME OVER", SwingConstants.CENTER);
-        messageLabel.setFont(new Font("Arial", Font.BOLD, 40));
-        messageLabel.setForeground(Color.RED);
+        JPanel whiteBox = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        JLabel scoreLabel = new JLabel("Final Score: "+finalScore, SwingConstants.CENTER);
-        scoreLabel.setFont(new Font("Arial", Font.PLAIN, 30));
-        scoreLabel.setForeground(Color.MAGENTA);
+                g2d.setColor(new Color(255, 255, 255, 220));
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
 
-        JPanel infoPanel = new JPanel();
-        infoPanel.setOpaque(false);
-        infoPanel.setLayout(new GridLayout(2,1));
-        infoPanel.add(messageLabel);
-        infoPanel.add(scoreLabel);
+            }
+        };
 
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setOpaque(false);
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER,30,100));
+        whiteBox.setLayout(new BoxLayout(whiteBox, BoxLayout.Y_AXIS));
+        whiteBox.setPreferredSize(new Dimension(400, 350));
+        whiteBox.setBorder(BorderFactory.createEmptyBorder(30, 20, 30, 20));
 
-        JButton restartButton = new JButton("Return to Main");
-        restartButton.setFont(new Font("Arial", Font.BOLD, 20));
-        restartButton.addActionListener(e-> {
-            launcher.showStartPanel();
-        });
 
-        JButton exitButton = new JButton("Exit Game");
-        exitButton.setFont(new Font("Arial", Font.BOLD, 20));
-        exitButton.addActionListener(e -> {
-            System.exit(0);
-        });
-        buttonPanel.add(restartButton);
-        buttonPanel.add(exitButton);
+        JLabel messageLabel = new JLabel("GAME OVER");
+        messageLabel.setFont(new Font("SansSerif", Font.BOLD, 40));
+        messageLabel.setForeground(new Color(50, 50, 50));
+        messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        add(infoPanel, BorderLayout.CENTER);
-        add(buttonPanel, BorderLayout.SOUTH);
+        JLabel scoreLabel = new JLabel("SCORE: " + finalScore);
+        scoreLabel.setFont(new Font("SansSerif", Font.BOLD, 28));
+        scoreLabel.setForeground(new Color(255, 80, 80));
+        scoreLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JButton restartButton = createStyledButton("Return to Main", new Color(180, 130, 180));
+        restartButton.addActionListener(e -> launcher.showStartPanel());
+
+        JButton exitButton = createStyledButton("Exit Game", new Color(205, 92, 92));
+        exitButton.addActionListener(e -> System.exit(0));
+
+        whiteBox.add(Box.createVerticalStrut(20));
+        whiteBox.add(messageLabel);
+        whiteBox.add(Box.createVerticalStrut(20));
+        whiteBox.add(scoreLabel);
+        whiteBox.add(Box.createVerticalStrut(40));
+        whiteBox.add(restartButton);
+        whiteBox.add(Box.createVerticalStrut(15));
+        whiteBox.add(exitButton);
+
+        add(whiteBox);
+    }
+
+    private void loadImages(int finalScore) {
+        try {
+            String bgPath;
+            if (finalScore == 0) bgPath = "image/gameoverWorst.png";
+            else if (finalScore <= 20) bgPath = "image/gameoverBad.png";
+            else if (finalScore <= 50) bgPath = "image/gameoverSoso.png";
+            else if (finalScore <= 100) bgPath = "image/gameoverGood.png";
+            else if (finalScore <= 150) bgPath = "image/gameoverBest.png";
+            else bgPath = "image/gameoverGyosoo.png";
+
+            GOBimage = ImageIO.read(getClass().getResourceAsStream(bgPath));
+
+            falling = new BufferedImage[FALLING_ANIMATION_FRAMES];
+            for (int i = 0; i < FALLING_ANIMATION_FRAMES; i++) {
+                falling[i] = ImageIO.read(getClass().getResourceAsStream("over/falling" + i + ".png"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        fallingTimer = new Timer(ANIMATION_DELAY_MS, this);
+        fallingTimer.start();
+    }
+
+    private JButton createStyledButton(String text, Color baseColor) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                if (getModel().isRollover()) {
+                    g2.setColor(baseColor.brighter());
+                } else {
+                    g2.setColor(baseColor);
+                }
+
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                g2.dispose();
+
+                super.paintComponent(g);
+            }
+        };
+
+        button.setFont(new Font("SansSerif", Font.BOLD, 16));
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
+        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        Dimension btnSize = new Dimension(200, 45);
+        button.setPreferredSize(btnSize);
+        button.setMaximumSize(btnSize);
+
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        return button;
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+
         if (GOBimage != null) {
             g.drawImage(GOBimage, 0, 0, getWidth(), getHeight(), this);
         }
 
-        BufferedImage currentImage = falling[fallingFrame];
-        if (currentImage != null) {
-            int x = GAME_WIDTH / 2 + 120;
+        if (falling[fallingFrame] != null) {
+            int x = GAME_WIDTH / 2 - 350;
             int y = GAME_HEIGHT / 2 - 50;
-            int width = 150;
-            int height = 150;
-
-            g.drawImage(
-                    currentImage,
-                    x,
-                    y,
-                    width,
-                    height,
-                    this
-            );
+            g.drawImage(falling[fallingFrame], x, y, 150, 150, this);
         }
-        else {
-            System.out.println("falling이미지가null입니다...");
-        }
-
     }
+
     @Override
     public void actionPerformed(java.awt.event.ActionEvent e) {
         if (e.getSource() == fallingTimer) {
