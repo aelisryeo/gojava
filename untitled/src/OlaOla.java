@@ -509,7 +509,8 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             minigameTimer = 2000.0;
             maxMinigameTime = 2000.0;
             currentState = GameState.MINIGAME_STUDENT;
-            studentMinigameWord = "TYPE";
+
+            studentMinigameWord = generateRandomWord(6);
             studentMinigameInput = "";
         } else if (obstacle == ObstacleType.MUSHROOM) {
             minigameTimer = 2000.0;
@@ -543,6 +544,18 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 currentState = GameState.CLIMBING;
             }
         }
+    }
+    private String generateRandomWord(int length) {
+
+        StringBuilder word = new StringBuilder();
+        int keysLength = DIRECTION_KEYS.length;
+
+        for (int i = 0; i < length; i++) {
+            int randomIndex = random.nextInt(keysLength);
+            word.append(DIRECTION_KEYS[randomIndex]);
+        }
+
+        return word.toString();
     }
 
 

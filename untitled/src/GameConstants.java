@@ -21,10 +21,11 @@ public interface GameConstants {
 
     int ITEM_HEIGHT = (STAIR_WIDTH / 4) * 3;
 
-    String[] DIRECTION_KEYS = {"A", "S", "D", "F", "H", "J", "K", "L"};
+    String[] DIRECTION_KEYS = {"Q", "W", "E", "R", "T", "Y", "U", "I",
+            "O", "P", "A", "S", "D", "F", "H", "J", "K", "L", "Z", "X", "C", "V", "B", "N", "M"};
 
-    String[] LEFT_HAND_KEYS = {"A", "S", "D", "F"};
-    String[] RIGHT_HAND_KEYS = {"H", "J", "K", "L"};
+    String[] LEFT_HAND_KEYS = {"Q", "W", "E", "R", "T", "A", "S", "D", "F", "Z", "X", "C", "V", "B"};
+    String[] RIGHT_HAND_KEYS = {"Y", "U", "I", "O", "P", "H", "J", "K", "L", "N", "M"};
 
     static final double BASE_OBSTACLE_SPAWN_CHANCE = 0.3;
 }
