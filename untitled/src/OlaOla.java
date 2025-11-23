@@ -87,7 +87,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         this.launcher = launcher;
 
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
-        setBackground(Color.BLACK);
+        setBackground(new Color(255,247,240));
         setFocusable(true);
         addKeyListener(this);
 
@@ -201,7 +201,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
     private void initializeStairs() {
         int currentX = playerX - (STAIR_WIDTH / 2) + (playerWidth / 2);
-        int currentY = GAME_HEIGHT - 40;
+        int currentY = GAME_HEIGHT - 70;
 
         stairs.add(new StairInfo(currentX, currentY, STAIR_WIDTH, STAIR_HEIGHT, false, false, ObstacleType.NONE, ItemType.NONE));
 
@@ -687,6 +687,18 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                     this
             );
         }
+        Graphics2D g2d = (Graphics2D) g.create();
+
+        float alpha = 0.5f;
+        AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+        g2d.setComposite(ac);
+
+        g2d.setColor(Color.WHITE);
+
+        g2d.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+        float opaqueAlpha = 1.0f;
+        AlphaComposite opaqueAc = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opaqueAlpha);
+        g2d.setComposite(opaqueAc);
 
         if (!isGameOver) {
             double currentTimerValue;
@@ -803,7 +815,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
             }
         }
-        Graphics2D g2d = (Graphics2D)g.create();
+        //Graphics2D g2d = (Graphics2D)g.create();
 
         BufferedImage currentCharImage = null;
         if (charAnim!=null && charAnim.length > 0) {

@@ -7,7 +7,7 @@ public interface GameConstants {
     int STAIR_GAP = 70;
     int INITIAL_STAIR_COUNT = 10;
 
-    int PLAYER_Y_POSITION = GAME_HEIGHT - 150;
+    int PLAYER_Y_POSITION = GAME_HEIGHT - 175;
     int LIFE = 3;
 
     int PLAYER_HEIGHT = 120;

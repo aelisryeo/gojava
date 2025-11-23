@@ -60,7 +60,7 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         this.launcher = launcher;
 
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
-        setBackground(Color.BLACK);
+        setBackground(new Color(255,247,240));
         setFocusable(true);
         addKeyListener(this);
 
@@ -346,6 +346,18 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
                     this
             );
         }
+        Graphics2D g2d = (Graphics2D) g.create();
+
+        float alpha = 0.5f;
+        AlphaComposite ac = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+        g2d.setComposite(ac);
+
+        g2d.setColor(Color.WHITE);
+
+        g2d.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+        float opaqueAlpha = 1.0f;
+        AlphaComposite opaqueAc = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opaqueAlpha);
+        g2d.setComposite(opaqueAc);
 
         for (StairInfo stair : stairs) {
             g.setColor(Color.DARK_GRAY);
@@ -355,10 +367,28 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
             if (stairs.indexOf(stair) == chaserStairIndex) {
                 g.setColor(Color.RED);
             }
-            g.fillRect(stair.bounds.x, stair.bounds.y, stair.bounds.width, stair.bounds.height);
+            g.fillRoundRect(stair.bounds.x, stair.bounds.y + 10, stair.bounds.width, stair.bounds.height, 15, 15);
+            if (stairs.indexOf(stair) == playerStairIndex && requiresDirectionChange) {
+                g.setColor(new Color(0, 0, 0, 160));
+                int keySize = 40;
+                int keyX = stair.bounds.x + (stair.bounds.width - keySize) / 2;
+                int keyY = stair.bounds.y;
+
+                g.fillRoundRect(keyX, keyY, keySize, keySize, 10, 10);
+
+                g.setColor(Color.WHITE);
+                g.setFont(GameFont.getFont(Font.PLAIN, 24f));
+
+                String keyText = currentDirectionKey;
+
+                FontMetrics fm = g.getFontMetrics();
+                int textX = keyX + (keySize - fm.stringWidth(keyText)) / 2;
+                int textY = keyY + (keySize - fm.getHeight()) / 2 + fm.getAscent();
+
+                g.drawString(keyText, textX, textY);
+            }
         }
 
-        Graphics2D g2d = (Graphics2D)g.create();
 
         BufferedImage currentCharImage = null;
         if (charAnim!=null && charAnim.length > 0) {
@@ -396,20 +426,10 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         drawCharacter(g, chaser, chaser.getX(), chaser.getY(), isChaserFacingLeft);
 
         g.setColor(Color.YELLOW);
-        g.setFont(new Font("SansSerif", Font.BOLD, 18));
+        g.setFont(GameFont.getFont(Font.PLAIN, 18));
         g.drawString("Score: " + score, 10, 20);
         g.drawString("Direction: " + (isPlayerFacingLeft ? "LEFT" : "RIGHT"), 10, 40);
 
-
-        if (requiresDirectionChange) {
-            g.setColor(Color.CYAN);
-            g.setFont(new Font("SansSerif", Font.BOLD, 24));
-            g.drawString("TURN KEY : [" + currentDirectionKey + "]", GAME_WIDTH - 200, 400);
-        }
-
-        g.setColor(Color.PINK);
-        g.setFont(new Font("SansSerif", Font.BOLD, 24));
-        g.drawString("시험기간이 쫓아온다", 400, 40);
 
     }
 

@@ -17,7 +17,7 @@ public class StartPanel extends JPanel implements GameConstants {
 
     public StartPanel(ActionListener startListener, ActionListener characterSelectListener, CharacterSelect currentCharacter) {
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
-        setBackground(Color.DARK_GRAY);
+        setBackground(Color.GRAY);
         setLayout(new BorderLayout());
 
         JLabel titleLabel = new JLabel("올라올라", SwingConstants.CENTER);

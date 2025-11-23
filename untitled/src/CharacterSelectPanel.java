@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
+import javax.swing.border.EmptyBorder;
 import java.io.IOException;
 
 public class CharacterSelectPanel extends JPanel {
@@ -16,7 +17,7 @@ public class CharacterSelectPanel extends JPanel {
         setLayout(new BorderLayout());
 
         JLabel header = new JLabel("캐릭터를 선택하세요", SwingConstants.CENTER);
-        header.setFont(new Font("sansSerif", Font.BOLD, 40));
+        header.setFont(GameFont.getFont(Font.PLAIN, 40));
         header.setForeground(Color.WHITE);
         header.setBorder(BorderFactory.createEmptyBorder(50, 0, 30, 0));
         add(header, BorderLayout.NORTH);
@@ -33,8 +34,8 @@ public class CharacterSelectPanel extends JPanel {
 
         add(characterContainer, BorderLayout.CENTER);
 
-        JButton backButton = new JButton("선택 완료");
-        backButton.setFont(new Font("SansSerif", Font.BOLD, 30));
+        JButton backButton = createStyledButton("선택 완료", 20, new Color(200, 180, 200));
+        backButton.setFont(GameFont.getFont(Font.PLAIN, 30));
         backButton.setPreferredSize(new Dimension(350, 80));
 
         backButton.addActionListener(e -> {
@@ -52,8 +53,10 @@ public class CharacterSelectPanel extends JPanel {
 
         JPanel southPanel = new JPanel();
         southPanel.setOpaque(false);
+        southPanel.setBorder(new EmptyBorder(0, 0, 20, 0));
         southPanel.add(backButton);
         add(southPanel, BorderLayout.SOUTH);
+
     }
 
     private JPanel createCharacterOptionPanel(CharacterSelect charOption, ButtonGroup group, CharacterSelect currentCharacter) {
@@ -101,4 +104,35 @@ public class CharacterSelectPanel extends JPanel {
 
         return panel;
     }
+    private JButton createStyledButton(String text, int fontSize, Color baseColor) {
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                if (getModel().isRollover()) {
+                    g2.setColor(baseColor.brighter());
+                } else {
+                    g2.setColor(baseColor);
+                }
+
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+
+                g2.dispose();
+
+                super.paintComponent(g);
+            }
+        };
+
+        button.setFont(GameFont.getFont(Font.PLAIN, (float)fontSize));
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        return button;
+    }
+
 }
