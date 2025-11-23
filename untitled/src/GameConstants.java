@@ -26,6 +26,5 @@ public interface GameConstants {
     String[] LEFT_HAND_KEYS = {"A", "S", "D", "F"};
     String[] RIGHT_HAND_KEYS = {"H", "J", "K", "L"};
 
-    static int[] STUDENT_SPAWN_SCORES = {50, 100, 150, 200, 250};
-    static final double BASE_OBSTACLE_SPAWN_CHANCE = 0.35;
+    static final double BASE_OBSTACLE_SPAWN_CHANCE = 0.3;
 }

@@ -41,6 +41,10 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
     private int totalStudentSpawnCount = 0;
 
+    private boolean isSpaceCharging = false;
+    private long spacePressStartTime = 0;
+    private final long CHARGE_THRESHOLD = 200;
+
     private enum GameState {
         CLIMBING,
         MINIGAME_STUDENT,
@@ -78,7 +82,6 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
     private BufferedImage[] charAnim;
     private int currentCharFrame = 0;
     private static final int playerWidth = 80;
-    private static final int playerHeight = 80;
     private int playerX = 368;
 
     private GameLauncher launcher;
@@ -226,11 +229,25 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         StairInfo lastStair = stairs.get(stairs.size() - 1);
         int newY = lastStair.bounds.y - STAIR_GAP;
 
+        boolean previousHasObject = false;
+        if (stairs.size() >= 2) {
+            StairInfo prevStair = stairs.get(stairs.size() - 2);
+            if (prevStair.obstacle != ObstacleType.NONE || prevStair.item != ItemType.NONE) {
+                previousHasObject = true;
+            }
+        }
+
         int expectedX_C = lastStair.isLeftDirection ? lastStair.bounds.x - STAIR_WIDTH : lastStair.bounds.x + STAIR_WIDTH;
 
         boolean willHitLeft_C = (expectedX_C <= 50);
         boolean willHitRight_C = (expectedX_C + STAIR_WIDTH >= GAME_WIDTH - 50);
-        boolean randomTurn_C = (random.nextDouble() < 0.4);
+        boolean randomTurn_C;
+
+        if (pendingObstacle != ObstacleType.NONE) {
+            randomTurn_C = false;
+        } else {
+            randomTurn_C = (random.nextDouble() < 0.4);
+        }
 
         boolean isTurnPoint_C = willHitLeft_C || willHitRight_C || randomTurn_C;
 
@@ -249,19 +266,25 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 nextIsLeft_C = !lastStair.isLeftDirection;
             }
             newX_C = nextIsLeft_C ? targetLeftX : targetRightX;
-
         } else {
             newX_C = expectedX_C;
         }
 
-        if (pendingObstacle == ObstacleType.NONE) {
+        int[] studentTargetScores = {10, 20, 50, 100, 150};
+
+        if (totalStudentSpawnCount < studentTargetScores.length &&
+                score >= studentTargetScores[totalStudentSpawnCount]) {
+
+            if (pendingObstacle != ObstacleType.STUDENT) {
+                pendingObstacle = ObstacleType.STUDENT;
+            }
+        }
+
+        else if (pendingObstacle == ObstacleType.NONE) {
             if (random.nextDouble() < BASE_OBSTACLE_SPAWN_CHANCE) {
                 ArrayList<ObstacleType> possibleObstacles = new ArrayList<>();
                 possibleObstacles.add(ObstacleType.PROFESSOR);
                 possibleObstacles.add(ObstacleType.MUSHROOM);
-                if (totalStudentSpawnCount < 5) {
-                    possibleObstacles.add(ObstacleType.STUDENT);
-                }
 
                 if (!possibleObstacles.isEmpty()) {
                     int obstacleIndex = random.nextInt(possibleObstacles.size());
@@ -271,7 +294,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         }
 
         boolean isTurnPoint_B = lastStair.isTurnPoint;
-        boolean isSafeToSpawn = !isTurnPoint_B && !isTurnPoint_C;
+        boolean isSafeToSpawn = !isTurnPoint_B && !isTurnPoint_C && !previousHasObject;
 
         if (pendingObstacle != ObstacleType.NONE) {
             if (isSafeToSpawn) {
@@ -279,31 +302,23 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
                 if (pendingObstacle == ObstacleType.STUDENT) {
                     totalStudentSpawnCount++;
-                    System.out.println("학생 " + totalStudentSpawnCount + "번째 배치");
+                    System.out.println("학생 " + totalStudentSpawnCount + "번째 배치 완료");
                 } else {
-                    System.out.println(pendingObstacle + " 배치");
+                    System.out.println(pendingObstacle + " 배치 성공");
                 }
                 pendingObstacle = ObstacleType.NONE;
-            } else {
-                System.out.println(pendingObstacle + " 배치 유예");
             }
         }
 
-        if (lastStair.obstacle == ObstacleType.NONE) {
-
-            final double ITEM_SPAWN_CHANCE = 0.25;
+        if (lastStair.obstacle == ObstacleType.NONE && !previousHasObject) {
+            final double ITEM_SPAWN_CHANCE = 0.15;
             if (random.nextDouble() < ITEM_SPAWN_CHANCE) {
-
                 ItemType[] possibleItems = {ItemType.CLOCK, ItemType.HEART, ItemType.TEST};
-                int itemIndex = random.nextInt(possibleItems.length);
-                ItemType newItem = possibleItems[itemIndex];
-
-                lastStair.item = newItem;
+                lastStair.item = possibleItems[random.nextInt(possibleItems.length)];
             }
         }
 
         stairs.add(new StairInfo(newX_C, newY, STAIR_WIDTH, STAIR_HEIGHT, nextIsLeft_C, isTurnPoint_C, ObstacleType.NONE, ItemType.NONE));
-
 
         if (stairs.size() > INITIAL_STAIR_COUNT + 10) {
             stairs.remove(0);
@@ -483,7 +498,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
             if (currentLife <= 0) {
                 isGameOver = true;
-                System.out.println("게임 오버: 교수님에게 털림");
+                System.out.println("게임 오버");
             }
 
             return;
@@ -491,8 +506,8 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
 
         if (obstacle == ObstacleType.STUDENT) {
-            minigameTimer = 3000.0;
-            maxMinigameTime = 3000.0;
+            minigameTimer = 2000.0;
+            maxMinigameTime = 2000.0;
             currentState = GameState.MINIGAME_STUDENT;
             studentMinigameWord = "TYPE";
             studentMinigameInput = "";
@@ -563,6 +578,14 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             return;
         }
 
+        if (currentState == GameState.CLIMBING && e.getKeyCode() == KeyEvent.VK_SPACE) {
+            if (!isSpaceCharging) {
+                isSpaceCharging = true;
+                spacePressStartTime = System.currentTimeMillis();
+            }
+            return;
+        }
+
         switch (currentState) {
             case CLIMBING:
                 handleClimbingInput(e);
@@ -578,6 +601,95 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         repaint();
     }
 
+
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        if (isGameOver) return;
+
+        if (currentState == GameState.CLIMBING && e.getKeyCode() == KeyEvent.VK_SPACE) {
+            if (isSpaceCharging) {
+                isSpaceCharging = false;
+                long pressDuration = System.currentTimeMillis() - spacePressStartTime;
+
+                if (pressDuration >= 150) {
+                    playerJump();
+                } else {
+                    playerClimb();
+                }
+                repaint();
+            }
+        }
+    }
+
+    private void playerJump() {
+        if (isGameOver || stairs.size() < 3) return;
+
+        StairInfo stairToJumpOver = stairs.get(1);
+
+        if (stairToJumpOver.obstacle != ObstacleType.NONE &&
+                stairToJumpOver.obstacle != ObstacleType.PROFESSOR) {
+            playerClimb();
+            return;
+        }
+
+        int jumpDistance = STAIR_WIDTH * 2; // 2칸 거리
+        int predictedX; // 점프 후 도착할 X 좌표
+
+        if (isPlayerFacingLeft) {
+            predictedX = playerX - jumpDistance;
+        } else {
+            predictedX = playerX + jumpDistance;
+        }
+
+        stairs.remove(0);
+        stairs.remove(0);
+
+        StairInfo landingStair = stairs.get(0);
+
+        int playerCenterX = predictedX + (64 / 2);
+
+        if (playerCenterX < landingStair.bounds.x ||
+                playerCenterX > landingStair.bounds.x + landingStair.bounds.width) {
+
+            this.playerX = predictedX;
+
+            isGameOver = true;
+            return;
+        }
+
+        this.playerX = predictedX;
+        if (landingStair.obstacle != ObstacleType.NONE) {
+            triggerObstacle(landingStair.obstacle);
+            landingStair.obstacle = ObstacleType.NONE;
+        } else if (landingStair.item != ItemType.NONE) {
+            triggerItem(landingStair.item);
+            landingStair.item = ItemType.NONE;
+        }
+
+        for (StairInfo stair : stairs) {
+            stair.bounds.y += (STAIR_GAP * 2);
+        }
+
+        generateNewStair();
+        generateNewStair();
+
+        score += 2;
+
+        StairInfo currentStair = stairs.get(0);
+        StairInfo nextStair = stairs.get(1);
+
+        if (currentStair.isLeftDirection != nextStair.isLeftDirection) {
+            requiresDirectionChange = true;
+            updateDirectionKey();
+        } else {
+            requiresDirectionChange = false;
+        }
+
+        System.out.println("점프함");
+
+    }
+
     private void handleClimbingInput(KeyEvent e) {
         String pressedKey = KeyEvent.getKeyText(e.getKeyCode()).toUpperCase();
         boolean isKeyValid = false;
@@ -590,16 +702,12 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             isKeyValid = true;
         }
 
-        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            playerClimb();
-            isKeyValid = true;
-        }
-
         if (!isKeyValid) {
             if (e.getKeyCode() != KeyEvent.VK_SHIFT &&
                     e.getKeyCode() != KeyEvent.VK_CONTROL &&
                     e.getKeyCode() != KeyEvent.VK_ALT &&
-                    e.getKeyCode() != KeyEvent.VK_META)
+                    e.getKeyCode() != KeyEvent.VK_META &&
+                    e.getKeyCode() != KeyEvent.VK_SPACE)
             {
                 handleWrongKey();
             }
@@ -979,6 +1087,31 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         g.setColor(Color.RED);
         g.setFont(GameFont.getFont(Font.PLAIN, 18));
         g.drawString("Life: " + currentLife, GAME_WIDTH - 80, 40);
+
+        if (isSpaceCharging && currentState == GameState.CLIMBING) {
+            long pressDuration = System.currentTimeMillis() - spacePressStartTime;
+
+            int barWidth = 50;
+            int barHeight = 6;
+            int barX = playerX + (64 - barWidth) / 2;
+            int barY = PLAYER_Y_POSITION - 15;
+
+            g.setColor(Color.BLACK);
+            g.fillRect(barX, barY, barWidth, barHeight);
+
+            float percent = Math.min(1.0f, (float)pressDuration / 200.0f);
+            int fillWidth = (int) (barWidth * percent);
+
+            if (percent >= 1.0f) {
+                g.setColor(Color.GREEN);
+            } else {
+                g.setColor(Color.YELLOW);
+            }
+            g.fillRect(barX, barY, fillWidth, barHeight);
+
+            g.setColor(Color.WHITE);
+            g.drawRect(barX, barY, barWidth, barHeight);
+        }
     }
 
 
@@ -1004,6 +1137,5 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
     }
 
     @Override public void keyTyped(KeyEvent e) {}
-    @Override public void keyReleased(KeyEvent e) {}
 
 }

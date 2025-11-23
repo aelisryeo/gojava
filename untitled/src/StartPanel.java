@@ -27,23 +27,22 @@ public class StartPanel extends JPanel implements GameConstants {
         titleLabel.setOpaque(false);
         titleLabel.setBorder(BorderFactory.createEmptyBorder(100, 0, 0, 0));
 
-
         JPanel characterSelectionArea = new JPanel();
         characterSelectionArea.setOpaque(false);
         characterSelectionArea.setLayout(new BoxLayout(characterSelectionArea, BoxLayout.Y_AXIS));
 
 
-        JButton selectCharButton = createStyledButton("캐릭터 선택", 22, new Color(200, 180, 200));
+        JButton selectCharButton = createStyledButton("캐릭터 선택", 22, new Color(200, 149, 237));
         selectCharButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         selectCharButton.addActionListener(characterSelectListener);
 
 
-        JButton startButton =  createStyledButton("올라올라", 30, new Color(200, 180, 200));
+        JButton startButton =  createStyledButton("올라올라", 30, new Color(200, 149, 237));
         startButton.setPreferredSize(new Dimension(300, 80));
         startButton.setActionCommand("CLASSIC_MODE");
         startButton.addActionListener(startListener);
 
-        JButton modeStartButton =  createStyledButton("술래잡기", 30, new Color(200, 180, 200));
+        JButton modeStartButton =  createStyledButton("술래잡기", 30, new Color(200, 149, 237));
         modeStartButton.setPreferredSize(new Dimension(300, 80));
         modeStartButton.setActionCommand("TEST_MODE");
         modeStartButton.addActionListener(startListener);

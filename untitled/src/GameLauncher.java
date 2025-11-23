@@ -9,7 +9,7 @@ public class GameLauncher {
 
     private CharacterSelect selectedCharacter = CharacterSelect.CHARACTER_기쁜수룡;
 
-
+    private GameMode currentGameMode;
     public enum GameMode {CLASSIC_MODE, TEST_MODE}
 
     public static void main(String[] args) {
@@ -72,7 +72,7 @@ public class GameLauncher {
 
         public void showGamePanel(GameMode selectedMode, CharacterSelect selectedCharacter) {
             launchFrame.getContentPane().removeAll();
-
+            this.currentGameMode = selectedMode;
             JPanel playGamePanel = null;
             if (selectedMode == GameMode.CLASSIC_MODE) {
                 playGamePanel = new OlaOla(this, selectedCharacter);
@@ -92,7 +92,7 @@ public class GameLauncher {
         public void showGameOverPanel(int finalScore) {
             launchFrame.getContentPane().removeAll();
 
-            GameOverPanel gameOverPanel = new GameOverPanel(this, finalScore);
+            GameOverPanel gameOverPanel = new GameOverPanel(this, finalScore, this.currentGameMode);
             launchFrame.add(gameOverPanel);
             launchFrame.pack();
             launchFrame.setLocationRelativeTo(null);

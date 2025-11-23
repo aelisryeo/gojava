@@ -16,10 +16,13 @@ public class GameOverPanel extends JPanel implements ActionListener, GameConstan
     private static final int FALLING_ANIMATION_FRAMES = 3;
     private static final int ANIMATION_DELAY_MS = 200;
 
-    public GameOverPanel(GameLauncher launcher, int finalScore) {
+    public GameOverPanel(GameLauncher launcher, int finalScore, GameLauncher.GameMode mode) {
         this.launcher = launcher;
 
         loadImages(finalScore);
+
+        boolean isNewRecord = HighScoreManager.saveScoreIfNewBest(mode, finalScore);
+        int bestScore = HighScoreManager.getHighScore(mode);
 
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
         setLayout(new GridBagLayout());
@@ -37,7 +40,7 @@ public class GameOverPanel extends JPanel implements ActionListener, GameConstan
         };
 
         whiteBox.setLayout(new BoxLayout(whiteBox, BoxLayout.Y_AXIS));
-        whiteBox.setPreferredSize(new Dimension(400, 350));
+        whiteBox.setPreferredSize(new Dimension(400, 400));
         whiteBox.setBorder(BorderFactory.createEmptyBorder(30, 20, 30, 20));
 
 
@@ -51,6 +54,17 @@ public class GameOverPanel extends JPanel implements ActionListener, GameConstan
         scoreLabel.setForeground(new Color(255, 80, 80));
         scoreLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        JLabel bestScoreLabel = new JLabel("BEST: " + bestScore);
+        bestScoreLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        bestScoreLabel.setForeground(Color.GRAY);
+        bestScoreLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel newRecordLabel = new JLabel("NEW RECORD!");
+        newRecordLabel.setFont(new Font("SansSerif", Font.BOLD, 20));
+        newRecordLabel.setForeground(new Color(255, 215, 0));
+        newRecordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        newRecordLabel.setVisible(isNewRecord);
+
         JButton restartButton = createStyledButton("Return to Main", new Color(180, 130, 180));
         restartButton.addActionListener(e -> launcher.showStartPanel());
 
@@ -61,6 +75,12 @@ public class GameOverPanel extends JPanel implements ActionListener, GameConstan
         whiteBox.add(messageLabel);
         whiteBox.add(Box.createVerticalStrut(20));
         whiteBox.add(scoreLabel);
+        whiteBox.add(Box.createVerticalStrut(5));
+        whiteBox.add(bestScoreLabel);
+        if (isNewRecord) {
+            whiteBox.add(Box.createVerticalStrut(10));
+            whiteBox.add(newRecordLabel);
+        }
         whiteBox.add(Box.createVerticalStrut(40));
         whiteBox.add(restartButton);
         whiteBox.add(Box.createVerticalStrut(15));
