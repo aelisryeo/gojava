@@ -936,7 +936,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
             }
         }
-        //Graphics2D g2d = (Graphics2D)g.create();
+
 
         BufferedImage currentCharImage = null;
         if (charAnim!=null && charAnim.length > 0) {
@@ -968,10 +968,10 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
                 );
             }
         }
-
         g2d.dispose();
 
         Graphics2D gEffect = (Graphics2D) g.create();
+
 
         if (damageFlashAlpha > 0) {
             drawRadialEffect(gEffect, Color.RED, damageFlashAlpha);
@@ -995,10 +995,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             gEffect.setStroke(new BasicStroke(1));
         }
 
-        g.setColor(Color.YELLOW);
-        g.setFont(GameFont.getFont(Font.PLAIN, 18));
-        g.drawString("Score: " + score, 10, 20);
-        g.drawString("Direction: " + (isPlayerFacingLeft ? "LEFT" : "RIGHT"), 10, 40);
+
 
         int buffY_Position = 80;
 
@@ -1024,6 +1021,31 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             String testText = "Test: " + testItemCount + "/5";
             g.drawString(testText, 10, buffY_Position);
         }
+
+        Graphics2D g2d2 = (Graphics2D) g.create();
+        int bgX =5;
+        int bgY = 15;
+        int bgWidth = 270;
+        int bgHeight = 60;
+
+        int arcWidth = 15;
+        int arcHeight = 15;
+
+        Composite originalComposite = g2d2.getComposite();
+
+        float opacity = 0.7f;
+        AlphaComposite alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity);
+        g2d2.setComposite(alphaComposite);
+
+        g2d2.setColor(new Color(255, 255, 255, 220));
+        g2d2.fillRoundRect(bgX, bgY, bgWidth, bgHeight, arcWidth, arcHeight);
+
+        g2d2.setComposite(originalComposite);
+        g.setColor(Color.DARK_GRAY);
+        g.setFont(GameFont.getFont(Font.PLAIN, 25));
+        g.drawString("Score: " + score, 10, 42);
+        g.drawString("Direction: " + (isPlayerFacingLeft ? "LEFT" : "RIGHT"), 10, 65);
+        g2d2.dispose();
 
 
         if (currentState != GameState.CLIMBING) {

@@ -424,11 +424,30 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         g2d.dispose();
 
         drawCharacter(g, chaser, chaser.getX(), chaser.getY(), isChaserFacingLeft);
+        Graphics2D g2d2 = (Graphics2D) g.create();
+        int bgX =5;
+        int bgY = 15;
+        int bgWidth = 270;
+        int bgHeight = 60;
 
-        g.setColor(Color.YELLOW);
-        g.setFont(GameFont.getFont(Font.PLAIN, 18));
-        g.drawString("Score: " + score, 10, 20);
-        g.drawString("Direction: " + (isPlayerFacingLeft ? "LEFT" : "RIGHT"), 10, 40);
+        int arcWidth = 15;
+        int arcHeight = 15;
+
+        Composite originalComposite = g2d2.getComposite();
+
+        float opacity = 0.7f;
+        AlphaComposite alphaComposite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity);
+        g2d2.setComposite(alphaComposite);
+
+        g2d2.setColor(new Color(255, 255, 255, 220));
+        g2d2.fillRoundRect(bgX, bgY, bgWidth, bgHeight, arcWidth, arcHeight);
+
+        g2d2.setComposite(originalComposite);
+        g.setColor(Color.DARK_GRAY);
+        g.setFont(GameFont.getFont(Font.PLAIN, 25));
+        g.drawString("Score: " + score, 10, 42);
+        g.drawString("Direction: " + (isPlayerFacingLeft ? "LEFT" : "RIGHT"), 10, 65);
+        g2d2.dispose();
 
 
     }
