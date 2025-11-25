@@ -488,6 +488,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
     private void triggerObstacle(ObstacleType obstacle) {
         System.out.println(obstacle + " 장애물");
+        playSound("obstacle");
 
         if (obstacle == ObstacleType.PROFESSOR) {
             double dvalue = Math.random();
@@ -670,6 +671,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
             isGameOver = true;
             return;
         }
+        playSound("jump");
 
         this.playerX = predictedX;
         if (landingStair.obstacle != ObstacleType.NONE) {
@@ -689,6 +691,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
 
         score += 2;
 
+
         StairInfo currentStair = stairs.get(0);
         StairInfo nextStair = stairs.get(1);
 
@@ -700,6 +703,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         }
 
         System.out.println("점프함");
+
 
     }
 

@@ -5,7 +5,6 @@ import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 
 public class StartPanel extends JPanel implements GameConstants {
-    private BufferedImage bImage;
     private BufferedImage characterImage;
     private CharacterSelect selectedCharacter = CharacterSelect.CHARACTER_기쁜수룡;
 
@@ -17,7 +16,7 @@ public class StartPanel extends JPanel implements GameConstants {
     public StartPanel(ActionListener startListener, ActionListener characterSelectListener,
                       ActionListener rulesListener, CharacterSelect currentCharacter) {
         setPreferredSize(new Dimension(GAME_WIDTH, GAME_HEIGHT));
-        setBackground(Color.GRAY);
+        setBackground(new Color(212,212,212));
         setLayout(new BorderLayout());
 
         JLabel titleLabel = new JLabel("올라올라", SwingConstants.CENTER);
@@ -98,16 +97,12 @@ public class StartPanel extends JPanel implements GameConstants {
                 String displayPath = charPath[0];
                 characterImage = ImageIO.read(getClass().getResourceAsStream(displayPath));
             }
-            bImage = ImageIO.read(getClass().getResourceAsStream("image/startBackground.png"));
-            if (bImage == null) {
-                System.err.println("배경 이미지 로드 실패: startBackground.png 파일을 찾을 수 없습니다.");
-            }
+
         } catch (Exception e) {
-            System.err.println("배경 이미지 로드 중 예외 발생");
+            System.err.println("이미지 로드 중 예외 발생");
             e.printStackTrace();
         }
 
-        //add(titleLabel, BorderLayout.NORTH);
         add(northPanel, BorderLayout.NORTH);
         add(centerContainer, BorderLayout.CENTER);
 
@@ -153,9 +148,6 @@ public class StartPanel extends JPanel implements GameConstants {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        if (bImage != null) {
-            g.drawImage(bImage, 0, 0, getWidth(), getHeight(), this);
-        }
 
         if (characterImage != null) {
             int charWidth = 200;
