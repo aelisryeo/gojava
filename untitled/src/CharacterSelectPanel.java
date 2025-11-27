@@ -14,7 +14,7 @@ public class CharacterSelectPanel extends JPanel {
 
     public CharacterSelectPanel(ActionListener completeListener, CharacterSelect currentCharacter) {
         this.completeListener = completeListener;
-        setPreferredSize(new Dimension(800, 600));
+        setPreferredSize(new Dimension(GameConstants.GAME_WIDTH, GameConstants.GAME_HEIGHT));
 
         setBackground(Color.WHITE);
         setLayout(new BorderLayout());

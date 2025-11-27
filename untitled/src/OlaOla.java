@@ -579,6 +579,7 @@ public class OlaOla extends JPanel implements ActionListener, KeyListener, GameC
         currentLife--;
         System.out.println("life--" + currentLife);
 
+        damageFlashAlpha = 150;
 
         if (currentLife <= 0) {
             isGameOver = true;

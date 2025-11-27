@@ -19,7 +19,7 @@ public interface GameConstants {
     double TIME_REDUCTION = 200.0;
     int DIFFICULTY = 20;
 
-    int ITEM_HEIGHT = (STAIR_WIDTH / 4) * 3;
+    int ITEM_HEIGHT = (STAIR_WIDTH / 4) * 4;
 
     String[] DIRECTION_KEYS = {"Q", "W", "E", "R", "T", "Y", "U", "I",
             "O", "P", "A", "S", "D", "F", "H", "J", "K", "L", "Z", "X", "C", "V", "B", "N", "M"};
