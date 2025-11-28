@@ -95,8 +95,8 @@ public class GameOverPanel extends JPanel implements ActionListener, GameConstan
             if (finalScore == 0) bgPath = "image/gameoverWorst.png";
             else if (finalScore <= 20) bgPath = "image/gameoverBad.png";
             else if (finalScore <= 50) bgPath = "image/gameoverSoso.png";
-            else if (finalScore <= 100) bgPath = "image/gameoverGood.png";
-            else if (finalScore <= 150) bgPath = "image/gameoverBest.png";
+            else if (finalScore <= 150) bgPath = "image/gameoverGood.png";
+            else if (finalScore <= 250) bgPath = "image/gameoverBest.png";
             else bgPath = "image/gameoverGyosoo.png";
 
             GOBimage = ImageIO.read(getClass().getResourceAsStream(bgPath));
