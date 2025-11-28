@@ -3,6 +3,7 @@ import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
     private int playerStairIndex = 0;
 
     private Character chaser;
-    private final int CHASER_MOVE_INTERVAL = 800;
+    private final int CHASER_MOVE_INTERVAL = 750;
     private final int CHASER_INTERVAL_REDUCTION = 70;
     private final int CHASER_MIN_INTERVAL = 20;
     private int currentChaserInterval;
@@ -52,6 +53,8 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
     private Timer playerTimer;
     private static final int PLAYER_ANIMATION_FRAMES = 3;
     private static final int ANIMATION_DELAY_MS = 150;
+
+    private int damageFlashAlpha = 0;
 
     private GameLauncher launcher;
 
@@ -190,6 +193,13 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
             chaserMoveTimer -= currentChaserInterval;
             if (isGameOver) return;
         }
+
+        if (damageFlashAlpha > 0) {
+            damageFlashAlpha -= 10;
+            if (damageFlashAlpha < 0) {
+                damageFlashAlpha = 0;
+            }
+        }
     }
 
     private void chaserClimb() {
@@ -304,23 +314,16 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         currentDirectionKey = DIRECTION_KEYS[randomIndex];
     }
 
+    private void handleWrongKey() {
+        if (isGameOver) return;
+        damageFlashAlpha = 150;
+    }
+
     @Override
     public void keyPressed(KeyEvent e) {
         if (isGameOver) {
             return;
         }
-
-        String pressedKey = KeyEvent.getKeyText(e.getKeyCode()).toUpperCase();
-
-        if (requiresDirectionChange) {
-            if (pressedKey.equals(currentDirectionKey)) {
-                isPlayerFacingLeft = !isPlayerFacingLeft;
-                requiresDirectionChange = false;
-                System.out.println("방향 전환 성공: " + currentDirectionKey);
-                playerClimb();
-            }
-        }
-
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
             if (requiresDirectionChange) {
                 System.out.println("게임 오버! 턴 키를 누르지 않았습니다.");
@@ -329,7 +332,65 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
                 playerClimb();
             }
         }
+        if (requiresDirectionChange) {
+            handleClimbingInput(e);
+        }
         repaint();
+    }
+
+    private void handleClimbingInput(KeyEvent e) {
+        String pressedKey = KeyEvent.getKeyText(e.getKeyCode()).toUpperCase();
+        boolean isKeyValid = false;
+
+        if (pressedKey.equals(currentDirectionKey)) {
+            isPlayerFacingLeft = !isPlayerFacingLeft;
+            requiresDirectionChange = false;
+            System.out.println("방향 전환 성공: "+ currentDirectionKey);
+            playerClimb();
+            isKeyValid = true;
+        }
+
+        if (!isKeyValid) {
+            if (e.getKeyCode() != KeyEvent.VK_SHIFT &&
+                    e.getKeyCode() != KeyEvent.VK_CONTROL &&
+                    e.getKeyCode() != KeyEvent.VK_ALT &&
+                    e.getKeyCode() != KeyEvent.VK_META &&
+                    e.getKeyCode() != KeyEvent.VK_SPACE)
+            {
+                handleWrongKey();
+            }
+        }
+    }
+
+    private void drawRadialEffect(Graphics2D g2d, Color baseColor, int alpha) {
+        if (alpha <= 0) return;
+        alpha = Math.min(255, alpha);
+
+        Point2D center = new Point2D.Float(GAME_WIDTH / 2.0f, GAME_HEIGHT / 2.0f);
+
+        float radius = Math.max(GAME_WIDTH, GAME_HEIGHT) * 0.7f;
+
+        float[] dist = {0.0f, 0.4f, 1.0f};
+
+        Color[] colors = {
+                new Color(0, 0, 0, 0),
+                new Color(baseColor.getRed(), baseColor.getGreen(), baseColor.getBlue(), 0),
+                new Color(baseColor.getRed(), baseColor.getGreen(), baseColor.getBlue(), alpha)
+        };
+
+
+        try {
+            RadialGradientPaint paint = new RadialGradientPaint(center, radius, dist, colors);
+            Paint oldPaint = g2d.getPaint();
+
+            g2d.setPaint(paint);
+            g2d.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            g2d.setPaint(oldPaint);
+        } catch (Exception e) {
+            g2d.setColor(new Color(baseColor.getRed(), baseColor.getGreen(), baseColor.getBlue(), alpha/2));
+            g2d.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+        }
     }
 
     @Override
@@ -449,6 +510,11 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         g.drawString("Direction: " + (isPlayerFacingLeft ? "LEFT" : "RIGHT"), 10, 65);
         g2d2.dispose();
 
+
+        Graphics2D gEffect = (Graphics2D) g.create();
+        if (damageFlashAlpha > 0) {
+            drawRadialEffect(gEffect, Color.RED, damageFlashAlpha);
+        }
 
     }
 
