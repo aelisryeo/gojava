@@ -76,7 +76,7 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         chaser = new Character(
                 playerX + CHASER_OFFSET_X,
                 PLAYER_Y_POSITION + 150, // 플레이어보다 아래
-                "image/chaser.png"
+                "image/professor.png"
         );
 
         String[] paths = selectedCharacter.getImagePath();
