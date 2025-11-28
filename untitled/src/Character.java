@@ -9,8 +9,8 @@ public class Character {
     private BufferedImage characterImage;
     private int x;
     private int y;
-    private final int width = 80;
-    private final int height = 80;
+    private final int width = 130;
+    private final int height = 130;
 
     public Character(int initialX, int initialY, String imagePath) {
         this.x = initialX;
