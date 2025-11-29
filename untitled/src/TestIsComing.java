@@ -23,7 +23,7 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
     private int currentChaserInterval;
     private int chaserMoveTimer = 0;
     private int chaserStairIndex = 0;
-    private final int CHASER_OFFSET_X = 20;
+    private final int CHASER_OFFSET_X = 150;
 
     private List<StairInfo> stairs = new ArrayList<>();
     private boolean isGameOver = false;
@@ -58,7 +58,6 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
     private GameLauncher launcher;
 
-
     public TestIsComing(GameLauncher launcher, CharacterSelect selectedCharacter) {
         this.launcher = launcher;
 
@@ -74,7 +73,6 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
         loopTimer = new Timer(GAME_TICK_MS, this);
         loopTimer.start();
-
 
         chaser = new Character(
                 playerX + CHASER_OFFSET_X,
@@ -111,8 +109,22 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
         initializeStairs();
         updateDirectionKey();
-    }
+        this.playerStairIndex = 1;
+        this.chaserStairIndex = 0;
+        // You MUST then update the X positions based on these new indices:
+        if (playerStairIndex < stairs.size()) {
+            StairInfo pStair = stairs.get(playerStairIndex);
+            this.playerX = pStair.bounds.x + (GameConstants.STAIR_WIDTH / 2) - (GameConstants.PLAYER_WIDTH / 2);
+            this.isPlayerFacingLeft = pStair.isLeftDirection;
+        }
 
+        if (chaserStairIndex < stairs.size()) {
+            StairInfo cStart = stairs.get(chaserStairIndex);
+            int startX = cStart.bounds.x + (GameConstants.STAIR_WIDTH / 2) - (chaser.getWidth() / 2);
+            chaser.setX(startX);
+            this.isChaserFacingLeft = cStart.isLeftDirection;
+        }
+    }
 
     private void initializeStairs() {
         int currentX = playerX - (STAIR_WIDTH / 2) + (PLAYER_WIDTH / 2);
@@ -120,7 +132,7 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
         stairs.add(new StairInfo(currentX, currentY, STAIR_WIDTH, STAIR_HEIGHT, false, false, ObstacleType.NONE, ItemType.NONE));
 
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 2; i++) {
             StairInfo lastStair = stairs.get(stairs.size() - 1);
 
             int newY = lastStair.bounds.y - STAIR_GAP;
@@ -212,11 +224,8 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         isChaserFacingLeft = nextStair.isLeftDirection;
 
         int targetX = nextStair.bounds.x + (STAIR_WIDTH / 2) - (chaser.getWidth() / 2);
-        int targetY = nextStair.bounds.y - chaser.getHeight();
-
-        chaser.setX(targetX);
-        chaser.setY(targetY);
         chaserStairIndex++;
+        chaser.setX(targetX);
 
         if (chaserStairIndex >= playerStairIndex) {
             isGameOver = true;
@@ -257,7 +266,6 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
         for (StairInfo stair : stairs) {
             stair.bounds.y += STAIR_GAP;
         }
-        chaser.setY(chaser.getY() + STAIR_GAP);
 
         removeOldStairs();
 
@@ -456,7 +464,7 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
             currentCharImage = charAnim[currentCharFrame];
         }
 
-        final int PLAYER_Y = PLAYER_Y_POSITION - 20;
+        final int PLAYER_Y = PLAYER_Y_POSITION - 90;
 
         if (currentCharImage != null) {
             if (isPlayerFacingLeft) {
@@ -484,7 +492,20 @@ public class TestIsComing extends JPanel implements ActionListener, KeyListener,
 
         g2d.dispose();
 
-        drawCharacter(g, chaser, chaser.getX(), chaser.getY(), isChaserFacingLeft);
+
+
+        if (chaserStairIndex < stairs.size() && chaserStairIndex >= 0) {
+            StairInfo currentChaserStair = stairs.get(chaserStairIndex);
+
+            isChaserFacingLeft = currentChaserStair.isLeftDirection;
+            int chaserDrawX = currentChaserStair.bounds.x + (STAIR_WIDTH / 2) - (chaser.getWidth() / 2);
+            int chaserDrawY = currentChaserStair.bounds.y + 10 - chaser.getHeight();
+
+            chaser.setX(chaserDrawX);
+            chaser.setY(chaserDrawY);
+
+            drawCharacter(g, chaser, chaserDrawX, chaserDrawY, isChaserFacingLeft);
+        }
         Graphics2D g2d2 = (Graphics2D) g.create();
         int bgX =5;
         int bgY = 15;
